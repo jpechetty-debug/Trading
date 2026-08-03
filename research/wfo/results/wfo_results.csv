@@ -1,0 +1,5 @@
+rs_lookback,atr_stop_mult,atr_target_mult,kill_threshold,train_exp,train_pf,train_trades,val_exp,val_pf,val_trades,exp_degradation,status
+12,1.5,2.5,4.0,0.0,0.0,0,0.0,0.0,0,0.0,✅ PASSED
+12,1.5,3.0,4.0,0.0,0.0,0,0.0,0.0,0,0.0,✅ PASSED
+16,1.5,2.5,4.0,0.0,0.0,0,0.0,0.0,0,0.0,✅ PASSED
+16,1.5,3.0,4.0,0.0,0.0,0,0.0,0.0,0,0.0,✅ PASSED
