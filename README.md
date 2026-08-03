@@ -4,6 +4,34 @@ A top-tier quantitative trading ecosystem for the Indian Stock Market (NSE), har
 
 ---
 
+## 🚀 Quick Start
+
+```bash
+# 1. Install dependencies
+pip install -r requirements.txt
+
+# 2. Configure your Gemini API key (used only for the BrainB commentary layer;
+#    core signal/sizing/risk logic is fully deterministic and works without it)
+cp .env.example .env
+# then edit .env and set GEMINI_API_KEY=<your real key>
+
+# 3. Run the test suite (43 tests, no API key or network required)
+python -m pytest tests/ -v
+
+# 4. Launch the live dashboard
+streamlit run src/app_v6.py
+```
+
+**Note:** The dashboard's "Check Market Regime" and "Run Scan" actions fetch live data via `yfinance` (Yahoo Finance) at runtime — an internet connection with access to Yahoo Finance is required for the live demo. If that data fetch fails for any reason, the system is designed to degrade gracefully to a "Neutral" regime rather than crash (verified in `src/scanner.py`).
+
+Other useful entry points:
+```bash
+python run_certification.py     # Backtest tearsheet across 3 benchmark tickers
+python run_portfolio_sim.py     # Full-universe portfolio simulation
+```
+
+---
+
 ## 🏗️ System Architecture (V7.0 Sovereignty)
 
 The system operates on an **Advanced Multi-Factor Risk Architecture**, decoupling data ingestion, signal generation, and risk execution.
