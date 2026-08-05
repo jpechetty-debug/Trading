@@ -48,3 +48,26 @@ MIN_LIQUIDITY_VOLUME = 10000
 ADV_SHARE_FLOOR = 500_000 # Institutional Grade
 ADV_TURNOVER_FLOOR = 20_000_000 # ₹20cr floor
 MAX_SPREAD_PAISE = 0.10 # 10 paise spread limit
+
+
+# --- Config Validation ---
+def validate_config():
+    """
+    Assert critical invariants at startup.
+    Prevents silent division-by-zero and out-of-range runtime errors.
+    """
+    assert 0 < MAX_DD_THRESHOLD < 1.0, f"MAX_DD_THRESHOLD must be in (0, 1), got {MAX_DD_THRESHOLD}"
+    assert KILL_SCORE_THRESHOLD < 10.0, f"KILL_SCORE_THRESHOLD must be < 10.0, got {KILL_SCORE_THRESHOLD}"
+    assert 0 < CONVICTION_MIN_MULT <= CONVICTION_MAX_MULT, \
+        f"Conviction bounds invalid: [{CONVICTION_MIN_MULT}, {CONVICTION_MAX_MULT}]"
+    assert RISK_PER_TRADE > 0, f"RISK_PER_TRADE must be positive, got {RISK_PER_TRADE}"
+    assert TARGET_PORTFOLIO_VOL > 0, f"TARGET_PORTFOLIO_VOL must be positive, got {TARGET_PORTFOLIO_VOL}"
+    assert STOP_LOSS_MULTIPLIER > 0, f"STOP_LOSS_MULTIPLIER must be positive, got {STOP_LOSS_MULTIPLIER}"
+    assert TARGET_MULTIPLIER > 0, f"TARGET_MULTIPLIER must be positive, got {TARGET_MULTIPLIER}"
+    assert 0 < BREADTH_THRESHOLD < 1.0, f"BREADTH_THRESHOLD must be in (0, 1), got {BREADTH_THRESHOLD}"
+    assert RS_SWEET_SPOT_LOW < RS_SWEET_SPOT_HIGH, \
+        f"RS sweet spot range invalid: [{RS_SWEET_SPOT_LOW}, {RS_SWEET_SPOT_HIGH}]"
+
+
+# Run validation on import
+validate_config()

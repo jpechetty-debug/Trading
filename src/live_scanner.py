@@ -11,7 +11,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from src.data.websocket_feed import MockFeed, CandleBuilder, Tick, Candle
 from src.brain_a_v5 import BrainAV5
 from src.execution.model import ExecutionModel
-from src.data.db import db
+from src.data.db import get_db
 from src.data.universe import NIFTY_200
 import src.config as config
 
@@ -67,7 +67,7 @@ class LiveScanner:
                 print(f"    Shares: {orders['shares']} | Reasons: {', '.join(result['reasons'])}")
                 
                 # Persist to DB
-                db.log_trade(
+                get_db().log_trade(
                     ticker=symbol,
                     action=result['direction'],
                     price=result['close'],

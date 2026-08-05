@@ -68,5 +68,11 @@ class Persistence:
         cols = [description[0] for description in cursor.description]
         return [dict(zip(cols, row)) for row in cursor.fetchall()]
 
-# Singleton
-db = Persistence()
+# Lazy singleton — avoids opening a DB connection on module import
+_db = None
+
+def get_db():
+    global _db
+    if _db is None:
+        _db = Persistence()
+    return _db

@@ -7,7 +7,7 @@ from src.brain_a_v5 import BrainAV5
 from src.execution.model import ExecutionModel
 from src.data.universe import NIFTY_200
 import src.config as config
-from src.data.db import db
+from src.data.db import get_db
 from src.regime import RegimeDetector
 
 log = get_logger(__name__)
@@ -101,7 +101,6 @@ class Scanner:
             log.warning("No data fetched. Aborting scan.")
             return []
 
-        # Debug prints
         log.debug("Bulk Data Columns: %s", bulk_data.columns[:5])
         log.debug("Bulk Data Head:\n%s", bulk_data.head())
 
@@ -114,7 +113,7 @@ class Scanner:
                 if isinstance(bulk_data.columns, pd.MultiIndex):
                     # Check if ticker is in columns (level 0)
                     if ticker not in bulk_data.columns.get_level_values(0):
-                        # print(f"Ticker {ticker} not in bulk data")
+                        log.debug("Ticker %s not in bulk data", ticker)
                         continue
                     stock_df = bulk_data[ticker].copy()
                 else:
@@ -126,10 +125,10 @@ class Scanner:
                 # Basic Validation
                 stock_df.dropna(inplace=True)
                 if len(stock_df) < 50: 
-                    # print(f"Skipping {ticker}: Not enough data {len(stock_df)}")
+                    log.debug("Skipping %s: Not enough data (%d)", ticker, len(stock_df))
                     continue
                 
-                # print(f"Analyzing {ticker} with {len(stock_df)} rows...")
+                log.debug("Analyzing %s with %d rows...", ticker, len(stock_df))
                 
                 # 4. Analyze Slice (Pure Logic)
                 result = self.brain.analyze_slice(ticker, stock_df, nifty_df, market_regime)
@@ -148,7 +147,7 @@ class Scanner:
                         result['shares'] = orders['shares']
                         
                         # LOGGING: Persist Signal to DB
-                        db.log_trade(
+                        get_db().log_trade(
                             ticker=ticker,
                             action=result['direction'],
                             price=result['close'],
@@ -159,10 +158,9 @@ class Scanner:
                         results.append(result)
                         
             except KeyError:
-                continue
+                log.debug("KeyError extracting %s from bulk data", ticker)
             except Exception as e:
-                # print(f"Err {ticker}: {e}")
-                continue
+                log.warning("Analysis failed for %s: %s", ticker, e)
 
         # 7. Sort by Kill Score
         results.sort(key=lambda x: x['kill_score'], reverse=True)

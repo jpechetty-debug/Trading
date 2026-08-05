@@ -9,11 +9,14 @@ from src.logger import get_logger
 
 log = get_logger(__name__)
 
-load_dotenv()
-genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
-
 class BrainBV5:
     def __init__(self):
+        load_dotenv()
+        api_key = os.getenv("GEMINI_API_KEY")
+        if api_key:
+            genai.configure(api_key=api_key)
+        else:
+            log.warning("GEMINI_API_KEY not set — BrainB commentary will use fallback.")
         self.model = genai.GenerativeModel('gemini-1.5-flash')
         self.tz = pytz.timezone('Asia/Kolkata')
 
@@ -23,35 +26,6 @@ class BrainBV5:
         if now < datetime.strptime("13:30", "%H:%M").time(): return "MID_DAY_CHOP"
         return "CLOSING_TREND"
 
-    def _mechanical_fallback(self, ticker, brain_a_data):
-        """Fallback if AI fails"""
-        price = brain_a_data['current_price']
-        atr = brain_a_data['atr']
-        direction = brain_a_data['direction']
-        score = brain_a_data['kill_score']
-        
-        # Dynamic Sizing Formula (Fallback)
-        size = min(score / 10.0, 1.0)
-
-        stop_mult = 2.0 if direction == "LONG" else -2.0
-        t1_mult = 1.5 if direction == "LONG" else -1.5
-        t2_mult = 3.0 if direction == "LONG" else -3.0
-
-        return {
-            "ticker": ticker,
-            "direction": direction,
-            "kill_score": score,
-            "entry": price,
-            "stop": round(price - (stop_mult * atr), 2),
-            "targets": {
-                "t1": round(price + (t1_mult * atr), 2),
-                "t2": round(price + (t2_mult * atr), 2)
-            },
-            "time_mode": "FALLBACK",
-            "position_size_pct": size,
-            "confidence": "MECHANICAL",
-            "reasoning": "AI Unavailable. Calculated via ATR."
-        }
 
     def generate_commentary(self, ticker, brain_a_data, retries=2):
         """

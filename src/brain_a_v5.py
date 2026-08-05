@@ -68,7 +68,8 @@ class BrainAV5:
         df['Turnover_MA_20'] = ta.sma(df['Turnover'], length=20)
 
         # FIX V6.5: NaN Protection — AFTER all indicators are computed
-        df.dropna(inplace=True)
+        # FIX V7.1: Return a new DataFrame to avoid mutating the caller's data
+        df = df.dropna()
         
         return df
 

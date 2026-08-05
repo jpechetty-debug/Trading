@@ -5,7 +5,7 @@ from src.logger import get_logger
 
 log = get_logger(__name__)
 
-STORAGE_DIR = "src/data/storage"
+STORAGE_DIR = os.path.join(os.path.dirname(__file__), "storage")
 
 if not os.path.exists(STORAGE_DIR):
     os.makedirs(STORAGE_DIR)

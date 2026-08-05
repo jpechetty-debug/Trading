@@ -11,7 +11,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from src.scanner import Scanner
 
 # --- Config ---
-st.set_page_config(page_title="Indian Stock AI V6.5", layout="wide", page_icon="🦅")
+st.set_page_config(page_title="Indian Stock AI V7.0", layout="wide", page_icon="🦅")
 st.markdown("""
 <style>
     .stMetric {background-color: #0E1117; padding: 10px; border-radius: 5px; border: 1px solid #333;}
@@ -28,8 +28,8 @@ def load_scanner():
 scanner = load_scanner()
 
 # --- Header ---
-st.title("🦅 Indian Stock AI V6.5 • Institutional Engine")
-st.caption("Prop Desk Dashboard: Adaptive Regime Weights & Institutional Liquidity active.")
+st.title("🦅 Indian Stock AI V7.0 • Institutional Engine")
+st.caption("Prop Desk Dashboard: Dynamic Sizing, Portfolio Vol Targeting & Market Breadth active.")
 
 # --- Sidebar ---
 with st.sidebar:
@@ -43,24 +43,24 @@ with st.sidebar:
         day = now.weekday()
         
         if day >= 5:
-            return "MARKET CLOSED", "Weekend", "🔴"
+            return "MARKET CLOSED", "Weekend (Hours: Mon-Fri, 09:15-15:30 IST)", "🔴"
         
         pre_morning = datetime.time(9, 0)
         market_open = datetime.time(9, 15)
         market_close = datetime.time(15, 30)
         
         if pre_morning <= current_time < market_open:
-            return "PRE-MARKET", "Pre-Opening Session", "🟡"
+            return "PRE-MARKET", "Pre-Opening (09:00 - 09:15 IST)", "🟡"
         elif market_open <= current_time < market_close:
-            return "MARKET OPEN", "Live Trading Session", "🟢"
+            return "MARKET OPEN", "Live Trading (09:15 - 15:30 IST)", "🟢"
         else:
-            return "MARKET CLOSED", "Session Ended", "🔴"
+            return "MARKET CLOSED", "Closed (Hours: 09:15 - 15:30 IST)", "🔴"
 
     status_text, status_desc, icon = get_market_status()
     st.markdown(f"### {icon} {status_text}")
     st.caption(f"**Session**: {status_desc}")
     
-    st.info("✅ V6.5 Engine Online")
+    st.info("✅ V7.0 Engine Online")
     st.info("✅ Institutional Liquidity Filter Active")
     st.info("✅ Adaptive Regime Weights Active")
     st.text(f"Risk Unit: ₹10,000")
@@ -101,7 +101,7 @@ with col1:
 
 with col2:
     st.subheader("Opportunity Scanner")
-    if st.button("🚀 Run V6.1 Scan (Parallel)"):
+    if st.button("🚀 Run V7.0 Scan (Parallel)"):
         if 'regime' not in st.session_state:
             st.error("Please check Market Regime first!")
         else:
