@@ -85,14 +85,23 @@ class ExecutionModel:
         reward_distance = abs(target - entry)
         risk_reward = reward_distance / risk_distance if risk_distance > 0 else 0
         
-        if risk_distance == 0:
+        if risk_distance <= 0:
+            # Degenerate stop (entry == stop or inverted): risk is undefined.
             shares = 0
         else:
             # Dynamic Risk Calculation
             dynamic_risk_inr = self.calculate_dynamic_risk(kill_score, portfolio_vol, current_dd)
             shares = int(dynamic_risk_inr / risk_distance)
-            
-        shares = max(1, shares)
+
+        # NOTE: We deliberately do NOT floor shares to a minimum of 1.
+        # `shares == 0` means either risk_distance was degenerate, or the
+        # per-share risk exceeds the whole allocated risk budget — in both
+        # cases forcing a 1-share trade (the old behavior) opens a position
+        # with no real risk control behind it. Callers must treat
+        # shares == 0 as "do not open this trade" (folded into valid_rr
+        # below so existing callers that gate on valid_rr get this for
+        # free).
+        valid_rr = (risk_reward >= 2.0) and (shares > 0)
 
         return Order(
             entry=round(entry, 2),
@@ -100,5 +109,5 @@ class ExecutionModel:
             target=round(target, 2),
             shares=shares,
             risk_reward=round(risk_reward, 2),
-            valid_rr=risk_reward >= 2.0
+            valid_rr=valid_rr
         ).to_dict()

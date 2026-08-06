@@ -66,13 +66,17 @@ class PortfolioConstraints:
                 self._price_data[ticker] = df['Close']
         log.info("Correlation engine loaded %d tickers.", len(self._price_data))
 
-    def _compute_pairwise_correlation(self, ticker_a: str, ticker_b: str) -> float:
+    def _compute_pairwise_correlation(self, ticker_a: str, ticker_b: str,
+                                       as_of: "pd.Timestamp | None" = None) -> float:
         """
-        Compute rolling return correlation between two tickers.
-        Returns 0.0 if data is insufficient.
+        Compute rolling return correlation between two tickers, using only
+        data available as of `as_of` (point-in-time — no look-ahead).
+
+        Returns 0.0 (via sector proxy) if data is insufficient.
         """
-        # Check cache first
-        pair_key = tuple(sorted([ticker_a, ticker_b]))
+        # Cache is keyed by (pair, as_of) so a query at time T never reuses
+        # a correlation computed with data from T' > T ("future" for T).
+        pair_key = (tuple(sorted([ticker_a, ticker_b])), as_of)
         if pair_key in self._correlation_cache:
             return self._correlation_cache[pair_key]
 
@@ -82,6 +86,14 @@ class PortfolioConstraints:
         if series_a is None or series_b is None:
             # Fallback to sector-based proxy
             return self._sector_correlation_proxy(ticker_a, ticker_b)
+
+        # CRITICAL: restrict to data on/before `as_of` before doing anything
+        # else. Without this, .tail(CORRELATION_LOOKBACK) below would pull
+        # the last N bars of the *entire* stored series (which may extend
+        # well past the current point in a backtest) — i.e. look-ahead bias.
+        if as_of is not None:
+            series_a = series_a.loc[:as_of]
+            series_b = series_b.loc[:as_of]
 
         # Align and compute returns
         combined = pd.DataFrame({'a': series_a, 'b': series_b}).dropna()
@@ -125,13 +137,16 @@ class PortfolioConstraints:
             return False, f"DAILY_LOSS_LIMIT_REACHED_(-₹{daily_loss:.2f})"
         return True, "OK"
 
-    def check_correlation_cluster(self, new_ticker, open_positions, total_equity):
+    def check_correlation_cluster(self, new_ticker, open_positions, total_equity, timestamp=None):
         """
         V6.5 UPGRADE: Real Return-Based Correlation Cluster Filter
         
         Sums risk exposure from all open positions with correlation > 0.75
         to the proposed new ticker. Vetoes if cluster exposure exceeds 40%
         of total risk capacity.
+
+        `timestamp`: current sim time. Correlation is computed point-in-time
+        (data on/before this timestamp only) to avoid look-ahead bias.
         """
         if not open_positions:
             return True, "OK"
@@ -141,7 +156,7 @@ class PortfolioConstraints:
         correlated_tickers = []
 
         for pos in open_positions:
-            corr = self._compute_pairwise_correlation(new_ticker, pos.ticker)
+            corr = self._compute_pairwise_correlation(new_ticker, pos.ticker, as_of=timestamp)
 
             if corr >= CORRELATION_THRESHOLD:
                 cluster_exposure += risk_per_trade
@@ -155,7 +170,7 @@ class PortfolioConstraints:
 
         return True, "OK"
 
-    def can_open_trade(self, portfolio, ticker, current_equity):
+    def can_open_trade(self, portfolio, ticker, current_equity, timestamp=None):
         if len(portfolio.open_positions) >= self.max_positions:
             return False, "MAX_POSITIONS"
 
@@ -171,7 +186,7 @@ class PortfolioConstraints:
 
         # 2. Correlation Cluster (Returns-Based with Sector Fallback)
         is_cluster_ok, cluster_reason = self.check_correlation_cluster(
-            ticker, portfolio.open_positions, current_equity
+            ticker, portfolio.open_positions, current_equity, timestamp=timestamp
         )
         if not is_cluster_ok:
             return False, cluster_reason

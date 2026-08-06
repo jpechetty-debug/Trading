@@ -6,5 +6,8 @@ google-generativeai~=0.8
 python-dotenv~=1.0
 pytz~=2024.1
 pyarrow~=17.0
-numpy~=1.26
+# pandas_ta==0.4.71b0 requires numpy>=2.2.6; numpy~=1.26 makes this file
+# uninstallable (verified: `pip install -r requirements.txt` fails with a
+# ResolutionImpossible error). Pin to a range compatible with pandas_ta.
+numpy>=2.2.6,<3.0
 pytest~=8.0

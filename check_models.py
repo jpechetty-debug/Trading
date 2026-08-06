@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 load_dotenv()
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 
+try:
     with open("models.txt", "w") as f:
         print("Writing to file...")
         for m in genai.list_models():

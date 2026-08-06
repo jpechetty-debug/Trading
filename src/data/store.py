@@ -65,7 +65,12 @@ class DataStore:
 
     def load_ticker(self, ticker):
         """Loads data from local fast storage with Warm Cache & Optimization"""
-        if not ticker.endswith(".NS") and not ticker == "^NSEI": 
+        # BUG FIX: this was missing the .BO check that update_ticker() has,
+        # so a BSE ticker already ending in ".BO" got ".NS" appended too
+        # (e.g. "TICKER.BO" -> "TICKER.BO.NS"), which would never match a
+        # file saved by update_ticker() and would silently trigger a fresh
+        # (wrong) download instead of loading the cached/stored data.
+        if not ticker.endswith(".NS") and not ticker.endswith(".BO") and not ticker == "^NSEI":
              ticker += ".NS"
              
         # 1. Check Warm Cache (RAM)

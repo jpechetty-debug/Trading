@@ -62,6 +62,35 @@ class Scanner:
             traceback.print_exc()
             return None, "Neutral"
 
+    def fetch_nifty_intraday(self):
+        """
+        Fetches Nifty at the SAME interval/period as the ticker universe
+        (5d/5m) so it can be joined against stock bars for RS scoring.
+
+        BUG FIX: scan_market() used to pass the *daily* nifty_df (from
+        fetch_market_context, period=1y/interval=1d) into
+        BrainAV5.analyze_slice() as the RS reference series, alongside
+        *5-minute* stock bars. calculate_relative_strength() inner-joins
+        the two on timestamp — daily and 5-min timestamps almost never
+        coincide, so the join returned ~0 rows and RS score silently
+        defaulted to 0.0 for every ticker in the live scanner. This method
+        fetches Nifty at matching resolution so the join actually has
+        overlapping timestamps to work with.
+        """
+        try:
+            nifty_intraday = yf.download(
+                "^NSEI", period="5d", interval="5m", progress=False, threads=False
+            )
+            if isinstance(nifty_intraday.columns, pd.MultiIndex):
+                nifty_intraday.columns = nifty_intraday.columns.get_level_values(0)
+            if nifty_intraday.empty:
+                log.warning("Intraday Nifty fetch failed; RS scoring will default to 0.")
+                return None
+            return self.brain.calculate_technicals(nifty_intraday)
+        except Exception as e:
+            log.error("Intraday Nifty fetch error: %s", e)
+            return None
+
     def fetch_bulk_data(self, tickers):
         """
         Fetches data for ALL tickers in a single call.
@@ -91,9 +120,13 @@ class Scanner:
         start_time = time.time()
         results = []
         
-        # 1. Get Context
+        # 1. Get Context (daily Nifty — used for the Bullish/Bearish regime label)
         nifty_df, market_regime = self.fetch_market_context()
-        
+
+        # 1b. Get a 5-min-resolution Nifty series for RS scoring, so it can
+        # actually be joined against the 5-min stock bars below.
+        nifty_rs_df = self.fetch_nifty_intraday()
+
         # 2. Bulk Fetch Data
         bulk_data = self.fetch_bulk_data(ALL_TICKERS)
         
@@ -131,13 +164,27 @@ class Scanner:
                 log.debug("Analyzing %s with %d rows...", ticker, len(stock_df))
                 
                 # 4. Analyze Slice (Pure Logic)
-                result = self.brain.analyze_slice(ticker, stock_df, nifty_df, market_regime)
+                # Use the 5-min Nifty series for RS (timeframe-matched to
+                # stock_df); market_regime (the label) still comes from the
+                # daily context fetched above.
+                result = self.brain.analyze_slice(ticker, stock_df, nifty_rs_df, market_regime)
                 
                 if result:
                     # 5. Filter: Kill Score check
                     if result['kill_score'] >= config.KILL_SCORE_THRESHOLD:
                         # 6. Apply Execution Model (Pass full metadata for Structure Targets)
                         orders = self.exec_model.generate_orders(result)
+
+                        # Same gate the backtest engine applies: reject
+                        # trades with poor R:R or degenerate/zero sizing.
+                        # Previously this check was missing here, so the
+                        # live scanner could surface setups that the
+                        # backtester would never have taken.
+                        if not orders['valid_rr']:
+                            log.debug("Rejected %s: invalid_rr (RR=%.2f, shares=%d)",
+                                      ticker, orders['risk_reward'], orders['shares'])
+                            continue
+
                         result.update(orders)
                         
                         # Add Entry/Stop/Target to result for unified interface

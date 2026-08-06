@@ -51,6 +51,29 @@ class PortfolioEngine:
         self.peak_equity = initial_equity
         self.daily_returns = []
 
+    def _compute_rs_score_series(self, stock_df, nifty_df):
+        """
+        Vectorized, point-in-time RS score per bar: rolling (lookback-bar)
+        log-return spread of stock vs Nifty, on the same scale as
+        BrainAV5.calculate_relative_strength (percentage points).
+
+        Previously no code path ever attached an 'RS_Score' column to a
+        ticker's DataFrame, so Position._check_structural_exit's RS_Score
+        read (`bar.get('RS_Score', 1.0)`) always fell back to 1.0 and the
+        RS_DETERIORATION structural exit could never trigger. This makes
+        that exit real.
+        """
+        lookback = self.brain.rs_lookback
+        merged = stock_df[['Close']].join(
+            nifty_df[['Close']], how="inner", lsuffix="_stock", rsuffix="_nifty"
+        )
+        stock_ret = np.log(merged['Close_stock'] / merged['Close_stock'].shift(lookback))
+        nifty_ret = np.log(merged['Close_nifty'] / merged['Close_nifty'].shift(lookback))
+        rs = (stock_ret - nifty_ret) * 100
+        # Reindex back onto the stock's own index (join can drop timestamps
+        # that don't exist in nifty_df).
+        return rs.reindex(stock_df.index)
+
     def load_universe(self):
         log.info("Loading V7.0 Universe (%d tickers)...", len(self.tickers))
         
@@ -66,6 +89,7 @@ class PortfolioEngine:
                 df.index = pd.to_datetime(df.index).tz_localize(None)
                 # V7.0: Pre-compute indicators for breadth
                 df = self.brain.calculate_technicals(df)
+                df['RS_Score'] = self._compute_rs_score_series(df, nifty_df)
                 return ticker, df
             return ticker, None
 
@@ -197,7 +221,9 @@ class PortfolioEngine:
             
             for sig in potential_signals:
                 ticker = sig['ticker']
-                allowed, reason = self.constraints.can_open_trade(self.portfolio, ticker, self.equity)
+                allowed, reason = self.constraints.can_open_trade(
+                    self.portfolio, ticker, self.equity, timestamp=timestamp
+                )
                 
                 if allowed:
                     # DYNAMIC SIZING logic orchestrated here

@@ -13,7 +13,11 @@ from src.brain_a_v5 import BrainAV5
 from src.execution.model import ExecutionModel
 from src.data.db import get_db
 from src.data.universe import NIFTY_200
+from src.scanner import Scanner
+from src.logger import get_logger
 import src.config as config
+
+log = get_logger(__name__)
 
 
 class LiveScanner:
@@ -30,11 +34,37 @@ class LiveScanner:
         
         # Market context (simplified for live mode)
         self.market_regime = "Bullish"
+        # BUG FIX: this was never populated, so every call to
+        # brain.analyze_slice() below received nifty_slice=None. Since
+        # calculate_relative_strength / calculate_rs_slope used to assume a
+        # real DataFrame, that raised an exception on every single candle
+        # close — silently, because the broad `except Exception: pass`
+        # further down swallowed it. LiveScanner therefore built candles
+        # correctly but never produced a single signal. It's now backed by
+        # a real (5-min resolution) Nifty fetch via Scanner, refreshed
+        # periodically in run() below. BrainAV5's RS methods also now
+        # tolerate nifty_df=None defensively (return rs=0.0) in case the
+        # fetch hasn't completed yet or fails.
         self.nifty_df = None
-        
+        self._context_scanner = Scanner()
+
         # Wire up callbacks
         self.candle_builder.on_candle_close = self.on_candle_close
         self.feed.set_tick_callback(self.on_tick)
+
+    def refresh_market_context(self):
+        """Fetch real Nifty context (regime + intraday RS reference)."""
+        try:
+            _, regime = self._context_scanner.fetch_market_context()
+            nifty_intraday = self._context_scanner.fetch_nifty_intraday()
+            if regime:
+                self.market_regime = regime
+            if nifty_intraday is not None:
+                self.nifty_df = nifty_intraday
+            else:
+                log.warning("Nifty intraday context unavailable; RS scoring will default to 0.")
+        except Exception:
+            log.exception("Failed to refresh market context")
     
     def on_tick(self, tick: Tick):
         """Process incoming tick."""
@@ -74,9 +104,13 @@ class LiveScanner:
                     shares=orders['shares'],
                     status="SIGNAL"
                 )
-        except Exception as e:
-            # Silently skip errors during live processing
-            pass
+        except Exception:
+            # BUG FIX: this used to be `except Exception: pass`, which
+            # hid every failure (including the nifty_df=None crash this
+            # class used to have) with zero visibility. Log it instead —
+            # a live trading component failing silently is worse than one
+            # failing loudly.
+            log.exception("Analysis failed for %s", symbol)
     
     async def run(self, duration_seconds: int = 60):
         """Run the live scanner for a specified duration."""
@@ -84,7 +118,11 @@ class LiveScanner:
         print(f"Symbols: {len(self.symbols)}")
         print(f"Candle Interval: {config.CANDLE_INTERVAL_SECONDS}s")
         print("-" * 50)
-        
+
+        # Populate market context before streaming starts (see bug-fix note
+        # in __init__ — this used to never happen).
+        self.refresh_market_context()
+
         await self.feed.connect()
         await self.feed.subscribe(self.symbols)
         

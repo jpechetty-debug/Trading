@@ -44,6 +44,17 @@ class BrainAV5:
             return None
 
     def calculate_technicals(self, df):
+        # FIX: the function docstring/changelog claimed this "returns a new
+        # DataFrame to avoid mutating the caller's data", but that was only
+        # true of the *return value* — every `df['X'] = ...` line below was
+        # still mutating the caller's original object in place (verified:
+        # calling this on a fresh df left 14 new columns bolted onto the
+        # caller's copy even though the returned object had different row
+        # count after dropna()). Some call sites defensively did
+        # `calculate_technicals(x.copy())` to work around this; others
+        # didn't. Copying once here makes the function honest regardless of
+        # what any given caller remembers to do.
+        df = df.copy()
         df['EMA_20'] = ta.ema(df['Close'], length=20)
         df['EMA_50'] = ta.ema(df['Close'], length=50)
         df['EMA_200'] = ta.ema(df['Close'], length=200)
@@ -86,6 +97,8 @@ class BrainAV5:
         Base RS Score (Log Returns)
         """
         if lookback is None: lookback = self.rs_lookback
+        if nifty_df is None or stock_df is None:
+            return 0.0
         # Inner join to align timestamps perfectly
         merged = stock_df[['Close']].join(
             nifty_df[['Close']], 
@@ -107,17 +120,30 @@ class BrainAV5:
         Checks if RS is accelerating over the last 5 candles.
         """
         if lookback is None: lookback = self.rs_lookback
+        if nifty_df is None or stock_df is None:
+            return 0.0
+
+        # FIX: align stock and nifty by timestamp ONCE, up front, then slice
+        # the aligned frame positionally. The previous version sliced
+        # stock_df.iloc[:-i] and nifty_df.iloc[:-i] independently ("Assuming
+        # aligned via previous fetch logic roughly") — if the two frames
+        # have different bar counts (a missing candle on one side, holidays,
+        # partial data, etc.) that positional slicing silently compares the
+        # wrong timestamps against each other.
+        merged = stock_df[['Close']].join(
+            nifty_df[['Close']], how="inner", lsuffix="_stock", rsuffix="_nifty"
+        )
+
         scores = []
         # Calculate RS for previous 5 steps to see the trend
         for i in range(5, 0, -1):
-            # Safe slicing
-            if len(stock_df) > i + lookback and len(nifty_df) > i + lookback:
-                s_slice = stock_df.iloc[:-i]
-                n_slice = nifty_df.iloc[:-i] # Assuming aligned via previous fetch logic roughly
-                scores.append(self.calculate_relative_strength(s_slice, n_slice, lookback))
-            else:
+            if len(merged) <= i + lookback:
                 return 0.0
-        
+            m_slice = merged.iloc[:-i]
+            stock_ret = np.log(m_slice['Close_stock'] / m_slice['Close_stock'].shift(lookback)).iloc[-1]
+            nifty_ret = np.log(m_slice['Close_nifty'] / m_slice['Close_nifty'].shift(lookback)).iloc[-1]
+            scores.append(round((stock_ret - nifty_ret) * 100, 2))
+
         if len(scores) < 3: return 0.0
         
         # Polyfit to find slope (Trajectory)
