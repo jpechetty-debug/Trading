@@ -73,6 +73,7 @@ class WalkForwardValidator:
             print("Full OOS log saved to research/walk_forward_results.csv")
         else:
             print("\n⚠️ No OOS trades generated during validation period.")
+            pd.DataFrame().to_csv("research/walk_forward_results.csv", index=False)
 
 if __name__ == "__main__":
     # Test on a few tickers to keep it reasonably fast

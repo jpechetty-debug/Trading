@@ -200,6 +200,8 @@ class WFOEngine:
         # Save results
         if not results:
              print("❌ No configurations passed the strict WFO criteria.")
+             output_path = Path('research/wfo/results/wfo_results.csv')
+             pd.DataFrame().to_csv(output_path, index=False)
              return pd.DataFrame()
 
         results_df = pd.DataFrame(results)

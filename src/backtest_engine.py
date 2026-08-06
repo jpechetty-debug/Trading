@@ -25,6 +25,19 @@ class BacktestEngine:
         self.start_date = start_date
         self.kill_threshold = kill_threshold
         self.research_mode = research_mode
+        self.portfolio_engine = None
+        # We initialize brain and exec_model here so research scripts can modify them
+        # However, they belong to PortfolioEngine. The best way is to instantiate a dummy
+        # or instantiate PortfolioEngine early. We'll instantiate PortfolioEngine without tickers
+        # and set them later, or just instantiate it here and override tickers in run().
+        self.portfolio_engine = PortfolioEngine(
+            tickers=[],
+            start_date=self.start_date,
+            kill_threshold=self.kill_threshold,
+            research_mode=self.research_mode,
+        )
+        self.brain = self.portfolio_engine.brain
+        self.exec_model = self.portfolio_engine.exec_model
 
     def run(self, ticker: str) -> pd.DataFrame:
         """
@@ -35,14 +48,8 @@ class BacktestEngine:
         """
         log.info("Single-Ticker Backtest for %s (via PortfolioEngine)...", ticker)
 
-        engine = PortfolioEngine(
-            tickers=[ticker],
-            start_date=self.start_date,
-            kill_threshold=self.kill_threshold,
-            research_mode=self.research_mode,
-        )
-
-        results_df = engine.run()
+        self.portfolio_engine.tickers = [ticker]
+        results_df = self.portfolio_engine.run()
 
         # PortfolioEngine returns {trade_id, ticker, direction, Net_R, PnL, Reason}
         # Walk-forward expects {trade_id, ticker, direction, entry_time, exit_time, exit_reason, Net_R, + features}
@@ -51,7 +58,7 @@ class BacktestEngine:
             return results_df
 
         enriched = []
-        for pos in engine.portfolio.closed_trades:
+        for pos in self.portfolio_engine.portfolio.closed_trades:
             enriched.append({
                 "trade_id": pos.trade_id,
                 "ticker": pos.ticker,
