@@ -71,13 +71,13 @@ class ExecutionModel:
             entry = price
             atr_stop = price - (self.stop_mult * atr)
             stop = min(atr_stop, swing_low - (0.1 * atr))
-            max_target = entry + (4.0 * atr)
+            max_target = entry + (self.target_mult * atr)
             target = min(max_target, resistance * 0.995)
         else: # SHORT
             entry = price
             atr_stop = price + (self.stop_mult * atr)
             stop = max(atr_stop, swing_high + (0.1 * atr))
-            max_target = entry - (4.0 * atr)
+            max_target = entry - (self.target_mult * atr)
             target = max(max_target, support * 1.005)
 
         # 2. Sizing Math

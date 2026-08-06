@@ -134,7 +134,7 @@ def get_breadth_score(self, universe_data: dict, timestamp: pd.Timestamp) -> flo
 
 ### 3. Structural Exit Logic (`src/backtest/position.py`)
 Exits trades before they hit stop/target if the "Alpha Edge" evaporates:
-- **RS Deterioration**: RS Score falls below 5th percentile (0.05).
+- **RS Deterioration**: RS Score falls below the minimum threshold (0.05 percentage points).
 - **Structure Break**: Price closes below the 20-EMA (Longs).
 - **Volatility Collapse**: Realized ATR falls below 50% of entry ATR.
 

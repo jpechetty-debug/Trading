@@ -9,8 +9,8 @@ class NSECostModel:
         self.txn_charge_rate = 0.0000345
         self.gst_rate = 0.18
         self.stamp_duty_rate = 0.00003
-        # CORRECTED SEBI FEE (1 bps)
-        self.sebi_fees = 0.0001 
+        # CORRECTED SEBI FEE (10 Rs per crore = 0.000001)
+        self.sebi_fees = 0.000001
         
         # Slippage/Impact: 0.05% per side ( Conservative)
         self.slippage_pct = 0.0005 

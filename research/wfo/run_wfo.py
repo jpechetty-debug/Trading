@@ -30,11 +30,11 @@ class WFOEngine:
         # WFO usually requires long history.
         # For now, we will use the available window in DataStore.
         
-        # Acceptance criteria (DEBUG: Accept Everything)
-        self.min_train_expectancy = -999.0
-        self.min_val_expectancy = -999.0
-        self.min_profit_factor = 0.0
-        self.min_trades = 0
+        # Acceptance criteria
+        self.min_train_expectancy = 0.05
+        self.min_val_expectancy = 0.05
+        self.min_profit_factor = 1.2
+        self.min_trades = 10
     
     def generate_configs(self):
         """Create all parameter combinations."""

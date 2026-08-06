@@ -155,11 +155,19 @@ class PortfolioEngine:
             current_dd = (self.peak_equity - self.equity) / self.peak_equity
             portfolio_vol = self._calculate_portfolio_vol()
 
+            # V7.0 Daily Loss Limit SOD tracking
+            current_date = timestamp.date()
+            if not hasattr(self, '_current_day') or self._current_day != current_date:
+                self._current_day = current_date
+                self._sod_equity = self.equity
+
             # --- 2. System Health Check ---
             is_healthy, reason = self.constraints.check_system_health(self.equity)
             if not is_healthy:
                 log.critical("CIRCUIT BREAKER: %s at %s", reason, timestamp)
                 break
+                
+            daily_ok, daily_reason = self.constraints.check_daily_loss_limit(self.equity, self._sod_equity)
 
             # --- 3. Position Updates (Structural Exits) ---
             for pos in self.portfolio.open_positions:
@@ -175,6 +183,12 @@ class PortfolioEngine:
                     pos.accounted_for = True
             
             # --- 4. Market Context (Regime & Breadth) ---
+            if not daily_ok:
+                if i % 1000 == 0:
+                    log.info("%s | Equity: ₹%.0f | LIMIT HIT: %s | Open: %d", 
+                             timestamp, self.equity, daily_reason, len(self.portfolio.open_positions))
+                continue
+                
             if timestamp not in nifty_df.index: continue
             nifty_row = nifty_df.loc[timestamp]
             nifty_slice = nifty_df.loc[:timestamp].tail(self.warmup + 1)

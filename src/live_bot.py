@@ -52,7 +52,7 @@ def run_live_bot():
                             "timestamp": timestamp,
                             "ticker": res['ticker'],
                             "action": "SIGNAL",
-                            "price": round(res['current_price'], 2),
+                            "price": round(res['close'], 2),
                             "kill_score": res['kill_score'],
                             "direction": res['direction'],
                             "shares": res['shares'],
