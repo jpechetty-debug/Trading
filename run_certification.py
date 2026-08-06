@@ -1,6 +1,7 @@
 from src.data.store import DataStore
 from src.backtest_engine import BacktestEngine
 import pandas as pd
+from datetime import datetime, timedelta
 
 # 1. Select 3 Distinct Profiles
 TICKERS = [
@@ -70,7 +71,12 @@ def run_certification():
         
     # Step 2: Run Backtest
     all_results = []
-    engine = BacktestEngine(start_date="2024-01-01")
+    
+    # Calculate 59 days ago to respect yfinance intraday limits
+    start_date = (datetime.now() - timedelta(days=59)).strftime("%Y-%m-%d")
+    print(f"\n⚠️ Note: Backtest start_date dynamically clamped to {start_date} due to yfinance 60-day 5m data limit.")
+    
+    engine = BacktestEngine(start_date=start_date)
     
     for t in TICKERS:
         print(f"\n🔬 Testing {t}...")

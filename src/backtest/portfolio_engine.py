@@ -249,6 +249,18 @@ class PortfolioEngine:
                     )
                     
                     if orders['valid_rr']:
+                        # V7.0 Capital / Leverage Constraint
+                        trade_cost = orders['shares'] * orders['entry']
+                        invested = sum(p.shares * p.entry for p in self.portfolio.open_positions)
+                        available_capital = self.equity - invested
+                        
+                        if trade_cost > available_capital:
+                            adjusted_shares = int(available_capital // orders['entry'])
+                            if adjusted_shares <= 0:
+                                log.info("Capital constraint blocked trade for %s", ticker)
+                                continue
+                            orders['shares'] = adjusted_shares
+
                         trade_id = f"{ticker}_{timestamp.strftime('%Y%m%d%H%M')}"
                         self.portfolio.open_trade(
                             trade_id=trade_id,

@@ -1,6 +1,7 @@
 from src.backtest.portfolio_engine import PortfolioEngine
 from src.data.store import DataStore
 from src.data.universe import NIFTY_200
+from datetime import datetime, timedelta
 
 # --- 1. Define Universe ---
 # Default to a smaller subset for quick testing, but can switch to NIFTY_200
@@ -22,9 +23,13 @@ def ensure_data():
     print("✅ Universe data ready.\n")
 
 def run_simulation():
+    # Calculate 59 days ago to respect yfinance intraday limits
+    start_date = (datetime.now() - timedelta(days=59)).strftime("%Y-%m-%d")
+    print(f"\n⚠️ Note: Backtest start_date dynamically clamped to {start_date} due to yfinance 60-day 5m data limit.")
+    
     engine = PortfolioEngine(
         tickers=UNIVERSE,
-        start_date="2024-01-01",
+        start_date=start_date,
         initial_equity=1000000.0 # 10 Lakh starting capital
     )
     

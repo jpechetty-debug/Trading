@@ -9,6 +9,7 @@ import pytz
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from src.scanner import Scanner
+from src.brain_b_v5 import BrainBV5
 
 # --- Config ---
 st.set_page_config(page_title="Indian Stock AI V7.0", layout="wide", page_icon="🦅")
@@ -26,6 +27,7 @@ def load_scanner():
     return Scanner()
 
 scanner = load_scanner()
+brain_b = BrainBV5()
 
 # --- Header ---
 st.title("🦅 Indian Stock AI V7.0 • Institutional Engine")
@@ -154,4 +156,21 @@ with col2:
                         c3.metric("Target", row['Target'])
                         c4.metric("SIZE", f"{row['Shares']} qty", delta=f"₹{row['Risk (₹)']}")
                         st.caption(f"**Thesis**: {row['Reasons']}")
-
+                        
+                        # Fetch Brain B Commentary
+                        with st.spinner(f"Brain B analyzing institutional sentiment for {row['Ticker']}..."):
+                            analysis = brain_b.generate_commentary(
+                                row['Ticker'], 
+                                {"direction": row['Dir'], "kill_score": row['Score']}
+                            )
+                        
+                        if analysis:
+                            st.markdown("---")
+                            score = analysis.get('sentiment_score', 5.0)
+                            score_color = "green" if score >= 7 else ("orange" if score >= 4 else "red")
+                            st.markdown(f"**BrainB Sentiment**: :{score_color}[{score}/10]")
+                            st.markdown(f"*{analysis.get('commentary', 'No commentary available.')}*")
+                            
+                            risk = analysis.get('risk_warning', 'N/A')
+                            if risk and risk != "N/A":
+                                st.warning(f"**Risk Warning:** {risk}")
