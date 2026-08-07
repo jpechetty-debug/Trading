@@ -41,22 +41,6 @@ class Features:
         }
 
 
-@dataclass
-class Signal:
-    """Output from Brain A — a raw trading signal before execution modeling."""
-    timestamp: datetime
-    ticker: str
-    close: float
-    atr: float
-    kill_score: float
-    direction: str            # "LONG" or "SHORT"
-    reasons: List[str]
-    features: Features
-    swing_high: float = 0.0
-    swing_low: float = 0.0
-    resistance: float = 0.0
-    support: float = 0.0
-
 
 @dataclass
 class Order:
@@ -79,15 +63,3 @@ class Order:
         }
 
 
-@dataclass
-class TradeRecord:
-    """A completed trade for export to DataFrame."""
-    trade_id: str
-    ticker: str
-    direction: str
-    entry_time: Optional[datetime] = None
-    exit_time: Optional[datetime] = None
-    exit_reason: Optional[str] = None
-    net_r: float = 0.0
-    pnl: float = 0.0
-    features: Features = field(default_factory=Features)

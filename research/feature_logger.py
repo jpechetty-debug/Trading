@@ -23,7 +23,7 @@ def collect_data():
     
     # 1. Initialize Engine
     # Note: We use a loose threshold of 0.0 to capture ALL signals for analysis
-    engine = BacktestEngine(start_date="2023-01-01", kill_threshold=0.0, research_mode=True)
+    engine = BacktestEngine(start_date="2023-01-01", kill_threshold=0.0)
     
     all_trades = []
     

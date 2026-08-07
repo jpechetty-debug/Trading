@@ -207,8 +207,16 @@ class BrainAV5:
         ema = row['EMA_20']
         vwap = row['VWAP']
         
-        is_bull = price > ema and price > vwap
-        is_bear = price < ema and price < vwap
+        price_15m = df_15m.iloc[-1]['Close']
+        ema_15m = df_15m.iloc[-1]['EMA_20']
+        
+        import pandas as pd
+        if pd.isna(ema_15m):
+            is_bull = price > ema and price > vwap
+            is_bear = price < ema and price < vwap
+        else:
+            is_bull = price > ema and price > vwap and price_15m > ema_15m
+            is_bear = price < ema and price < vwap and price_15m < ema_15m
 
         direction = "NEUTRAL"
         if is_bull: direction = "LONG"; score += weight_structure; reasons.append("Bull Structure")

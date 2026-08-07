@@ -25,13 +25,13 @@ class PortfolioEngine:
     - Market Breadth Filter (50-EMA Universe scan)
     - Event & Gap Risk Filtering
     """
-    def __init__(self, tickers, start_date="2024-01-01", initial_equity=100000.0, kill_threshold=6.0, research_mode=False, adaptive_mode=False):
+    def __init__(self, tickers, start_date="2024-01-01", initial_equity=100000.0, kill_threshold=6.0, adaptive_mode=False):
         self.tickers = tickers
         self.start_date = pd.to_datetime(start_date).tz_localize(None)
         self.initial_equity = initial_equity
         self.equity = initial_equity
         self.kill_threshold = kill_threshold
-        self.research_mode = research_mode
+
         self.adaptive_mode = adaptive_mode
         
         self.store = DataStore()

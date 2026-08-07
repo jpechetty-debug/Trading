@@ -25,7 +25,7 @@ def run_phase3():
         start_date="2024-01-01",
         initial_equity=1000000.0, # 10 Lakhs
         kill_threshold=6.0,       # Base threshold (overridden by adaptive_mode)
-        research_mode=False,
+        ,
         adaptive_mode=True        # ✅ ENABLE ADAPTIVE LOGIC
     )
     

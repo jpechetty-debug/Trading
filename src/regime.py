@@ -72,26 +72,32 @@ class RegimeDetector:
     def get_breadth_score(self, universe_data: dict, timestamp: pd.Timestamp) -> float:
         """
         V7.0: Calculate % of stocks above their 50-EMA at a given timestamp.
+        Optimized to compute vector-wide breadth series and cache it for the lifetime of `universe_data`.
         """
-        total = 0
-        above = 0
-        
-        for ticker, df in universe_data.items():
-            if ticker == "^NSEI": continue
-            if timestamp in df.index:
-                total += 1
-                row = df.loc[timestamp]
-                # Check 50-EMA from features or compute on the fly
-                # For efficiency, we assume 'EMA_50' exists if pre-computed
+        if not universe_data:
+            return 0.5
+            
+        if getattr(self, '_breadth_cache_id', None) != id(universe_data):
+            closes = {}
+            emas = {}
+            for ticker, df in universe_data.items():
+                if ticker == "^NSEI": continue
                 if 'EMA_50' in df.columns:
-                    if row['Close'] > row['EMA_50']:
-                        above += 1
-                else:
-                    # Fallback if not pre-computed (slower)
-                    # Use a rolling calc if possible or skip
-                    pass
+                    closes[ticker] = df['Close']
+                    emas[ticker] = df['EMA_50']
                     
-        return above / total if total > 0 else 0.5 # Default to mid-strength if no data
+            if not closes:
+                self._breadth_series = pd.Series(dtype=float)
+            else:
+                close_df = pd.DataFrame(closes)
+                ema_df = pd.DataFrame(emas)
+                self._breadth_series = (close_df > ema_df).mean(axis=1)
+                
+            self._breadth_cache_id = id(universe_data)
+            
+        if timestamp in self._breadth_series.index:
+            return float(self._breadth_series.loc[timestamp])
+        return 0.5
 
     def detect_from_slice(self, nifty_slice: pd.DataFrame) -> dict:
         """

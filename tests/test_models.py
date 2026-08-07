@@ -2,7 +2,7 @@
 test_models.py — Type-safe dataclass tests.
 """
 import pytest
-from src.models import Features, Order, TradeRecord
+from src.models import Features, Order
 
 
 class TestFeatures:
@@ -29,7 +29,3 @@ class TestOrder:
         assert len(d) == 6
 
 
-class TestTradeRecord:
-    def test_default_features(self):
-        tr = TradeRecord(trade_id="T1", ticker="TEST.NS", direction="LONG")
-        assert isinstance(tr.features, Features)

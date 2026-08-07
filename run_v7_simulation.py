@@ -43,7 +43,7 @@ def run_simulation():
         start_date="2024-01-01",
         initial_equity=1000000.0, # 10 Lakh Capital
         kill_threshold=6.0,
-        research_mode=False
+        
     )
     
     # Run

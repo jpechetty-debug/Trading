@@ -23,10 +23,10 @@ class BacktestEngine:
     expected by research scripts.
     """
 
-    def __init__(self, start_date="2024-01-01", kill_threshold=6.0, research_mode=False):
+    def __init__(self, start_date="2024-01-01", kill_threshold=6.0):
         self.start_date = start_date
         self.kill_threshold = kill_threshold
-        self.research_mode = research_mode
+
         # Long-lived brain/exec_model instances so research scripts (e.g.
         # research/wfo/run_wfo.py, which does
         # `engine.brain.rs_lookback = ...` / `engine.exec_model.stop_mult = ...`
@@ -64,7 +64,7 @@ class BacktestEngine:
             tickers=[ticker],
             start_date=self.start_date,
             kill_threshold=self.kill_threshold,
-            research_mode=self.research_mode,
+            
         )
         portfolio_engine.brain = self.brain
         portfolio_engine.exec_model = self.exec_model

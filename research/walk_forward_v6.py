@@ -39,7 +39,7 @@ class WalkForwardValidator:
             for ticker in self.tickers:
                 # We initialize engine with current_test_start
                 # The engine will use history BEFORE this for warmup
-                engine = BacktestEngine(start_date=current_test_start.strftime("%Y-%m-%d"), research_mode=True)
+                engine = BacktestEngine(start_date=current_test_start.strftime("%Y-%m-%d"))
                 
                 # We need to cap the engine's end date (not supported in BacktestEngine.run directly)
                 # But we can pass it via data manipulation or just run and filter

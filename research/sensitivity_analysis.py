@@ -25,7 +25,7 @@ def run_sensitivity_analysis():
         wins = 0
         
         for ticker in tickers:
-            engine = BacktestEngine(start_date="2024-01-01", kill_threshold=threshold, research_mode=True)
+            engine = BacktestEngine(start_date="2024-01-01", kill_threshold=threshold)
             results_df = engine.run(ticker)
             
             if not results_df.empty:

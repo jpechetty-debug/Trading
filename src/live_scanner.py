@@ -83,13 +83,8 @@ class LiveScanner:
             result = self.brain.analyze_slice(symbol, df, self.nifty_df, self.market_regime)
             
             if result and result['kill_score'] >= config.KILL_SCORE_THRESHOLD:
-                # Generate orders
-                signal_packet = {
-                    'close': result['close'],
-                    'atr': result['atr'],
-                    'direction': result['direction']
-                }
-                orders = self.exec_model.generate_orders(signal_packet)
+                # Generate orders with full metadata
+                orders = self.exec_model.generate_orders(result)
                 
                 # Log signal
                 print(f"\n*** SIGNAL: {symbol} | {result['direction']} | Score: {result['kill_score']}/10 ***")
