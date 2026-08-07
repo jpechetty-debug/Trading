@@ -15,7 +15,7 @@ pip install -r requirements.txt
 cp .env.example .env
 # then edit .env and set GEMINI_API_KEY=<your real key>
 
-# 3. Run the test suite (71 tests, no API key or network required)
+# 3. Run the test suite (83 tests, no API key or network required)
 python -m pytest tests/ -v
 
 # 4. Launch the live dashboard
@@ -144,8 +144,9 @@ Exits trades before they hit stop/target if the "Alpha Edge" evaporates:
 
 | Version | Milestone | Key Features |
 | :--- | :--- | :--- |
+| **V8.0** | **Alerts & Notifications** | Added Telegram and Email alerts via AlertManager with deduplication. |
 | **V7.2** | **Stability & State Isolation** | Fixed cross-ticker state leakage in multi-ticker runs, resolved trade report `NameError`, added engine unit tests. |
-| **V7.1** | **Resilience & Safety** | BrainB UI integration, Capital & Leverage Limits, 59-day Backtest Engine dates, E2E integration testing, and 71 active tests. |
+| **V7.1** | **Resilience & Safety** | BrainB UI integration, Capital & Leverage Limits, 59-day Backtest Engine dates, E2E integration testing, and 83 active tests. |
 | **V7.0** | **The Quant Institutional** | Dynamic Sizing, Portfolio Vol Targeting, Market Breadth, Structural Exits. |
 | **V6.5** | **Regime Sovereignty** | Unified RegimeDetector, Multi-Factor constraints, Parquet Optimization. |
 | **V6.0** | **Bayesian Brain** | BrainAV5 (Kill Score logic), ATR-based stops, Multi-ticker backtesting. |
@@ -155,7 +156,7 @@ Exits trades before they hit stop/target if the "Alpha Edge" evaporates:
 
 ## 🧪 Verification & Reliability
 
-- **Universal Test Suite**: 71 active tests coverage including Portfolio Engine E2E tests and multi-ticker state isolation logic.
+- **Universal Test Suite**: 83 active tests coverage including Portfolio Engine E2E tests, multi-ticker state isolation logic, and AlertManager components.
 - **Dynamic Sizing Tests**: Verified conviction scalars (7.5k - 12.5k risk bands).
 - **Structural Exit Tests**: Verified automated exits on RS/EMA/ATR shifts.
 - **Breadth Verification**: Verified veto triggers on weak market internalities.

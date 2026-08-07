@@ -9,15 +9,20 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from src.utils.market_time import MarketClock, IST
 from src.scanner import Scanner
+from src.notifications import AlertManager
 
 def run_live_bot():
     clock = MarketClock()
     scanner = Scanner()
+    alerts = AlertManager()
     
     # We will use the V6.1 Scanner which already has BrainAV5 and ExecutionModel built-in
     
     print("🦅 V6.2 LIVE HEADLESS BOT INITIALIZED")
     print(f"   Mode: Parallel Scan (60 Tickers) | Risk: ₹10,000/trade")
+    if not alerts.telegram.enabled and not alerts.email.enabled:
+        print("   ⚠️  No alert channels configured — signals will only be logged to live_signals.csv.")
+        print("      Run `python -m src.notifications` after setting up .env to enable Telegram/email.")
     
     while True:
         # 1. Check Schedule
@@ -70,6 +75,12 @@ def run_live_bot():
                         df.to_csv(filename, mode='a', header=not file_exists, index=False)
                         
                         print(f"   >>> 🔔 SIGNAL LOGGED: {res['ticker']} (Score: {res['kill_score']}) | Qty: {res['shares']}")
+
+                        # Fan out to Telegram / email (no-op if neither is
+                        # configured; won't raise even if a send fails)
+                        sent_via = alerts.send_signal_alert(res)
+                        if sent_via:
+                            print(f"       📨 Alert sent via: {', '.join(sorted(sent_via))}")
             else:
                 print("   No signals found this interval.")
 
