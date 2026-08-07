@@ -1,7 +1,7 @@
 # src/config.py
 
 # --- System Configuration ---
-SYSTEM_VERSION = "7.0"
+SYSTEM_VERSION = "8.0"
 RISK_PER_TRADE = 10000  # INR (Base risk for sizing)
 TARGET_PORTFOLIO_VOL = 0.12 # 12% Annualized
 DATA_MODE = "HISTORICAL"  # "HISTORICAL" or "LIVE"
