@@ -15,7 +15,7 @@ pip install -r requirements.txt
 cp .env.example .env
 # then edit .env and set GEMINI_API_KEY=<your real key>
 
-# 3. Run the test suite (68 tests, no API key or network required)
+# 3. Run the test suite (71 tests, no API key or network required)
 python -m pytest tests/ -v
 
 # 4. Launch the live dashboard
@@ -144,7 +144,8 @@ Exits trades before they hit stop/target if the "Alpha Edge" evaporates:
 
 | Version | Milestone | Key Features |
 | :--- | :--- | :--- |
-| **V7.1** | **Resilience & Safety** | BrainB UI integration, Capital & Leverage Limits, 59-day Backtest Engine dates, E2E integration testing, and 68 active tests. |
+| **V7.2** | **Stability & State Isolation** | Fixed cross-ticker state leakage in multi-ticker runs, resolved trade report `NameError`, added engine unit tests. |
+| **V7.1** | **Resilience & Safety** | BrainB UI integration, Capital & Leverage Limits, 59-day Backtest Engine dates, E2E integration testing, and 71 active tests. |
 | **V7.0** | **The Quant Institutional** | Dynamic Sizing, Portfolio Vol Targeting, Market Breadth, Structural Exits. |
 | **V6.5** | **Regime Sovereignty** | Unified RegimeDetector, Multi-Factor constraints, Parquet Optimization. |
 | **V6.0** | **Bayesian Brain** | BrainAV5 (Kill Score logic), ATR-based stops, Multi-ticker backtesting. |
@@ -154,7 +155,7 @@ Exits trades before they hit stop/target if the "Alpha Edge" evaporates:
 
 ## 🧪 Verification & Reliability
 
-- **Universal Test Suite**: 68 active tests coverage including Portfolio Engine E2E tests.
+- **Universal Test Suite**: 71 active tests coverage including Portfolio Engine E2E tests and multi-ticker state isolation logic.
 - **Dynamic Sizing Tests**: Verified conviction scalars (7.5k - 12.5k risk bands).
 - **Structural Exit Tests**: Verified automated exits on RS/EMA/ATR shifts.
 - **Breadth Verification**: Verified veto triggers on weak market internalities.

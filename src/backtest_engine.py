@@ -8,6 +8,8 @@ import pandas as pd
 
 from src.logger import get_logger
 from src.backtest.portfolio_engine import PortfolioEngine
+from src.brain_a_v5 import BrainAV5
+from src.execution.model import ExecutionModel
 
 log = get_logger(__name__)
 
@@ -25,19 +27,13 @@ class BacktestEngine:
         self.start_date = start_date
         self.kill_threshold = kill_threshold
         self.research_mode = research_mode
-        self.portfolio_engine = None
-        # We initialize brain and exec_model here so research scripts can modify them
-        # However, they belong to PortfolioEngine. The best way is to instantiate a dummy
-        # or instantiate PortfolioEngine early. We'll instantiate PortfolioEngine without tickers
-        # and set them later, or just instantiate it here and override tickers in run().
-        self.portfolio_engine = PortfolioEngine(
-            tickers=[],
-            start_date=self.start_date,
-            kill_threshold=self.kill_threshold,
-            research_mode=self.research_mode,
-        )
-        self.brain = self.portfolio_engine.brain
-        self.exec_model = self.portfolio_engine.exec_model
+        # Long-lived brain/exec_model instances so research scripts (e.g.
+        # research/wfo/run_wfo.py, which does
+        # `engine.brain.rs_lookback = ...` / `engine.exec_model.stop_mult = ...`
+        # once and then calls run(ticker) across a whole universe) can tune
+        # parameters once and have them apply to every subsequent run().
+        self.brain = BrainAV5()
+        self.exec_model = ExecutionModel()
 
     def run(self, ticker: str) -> pd.DataFrame:
         """
@@ -48,8 +44,32 @@ class BacktestEngine:
         """
         log.info("Single-Ticker Backtest for %s (via PortfolioEngine)...", ticker)
 
-        self.portfolio_engine.tickers = [ticker]
-        results_df = self.portfolio_engine.run()
+        # BUG FIX: this used to reuse a single PortfolioEngine instance
+        # (created once in __init__) across every run(ticker) call, just
+        # swapping `.tickers`. PortfolioEngine.run() never resets equity,
+        # the Portfolio's closed_trades list, equity_history, or
+        # peak_equity between calls — so the 2nd+ ticker's backtest
+        # silently started from the 1st ticker's ending equity/drawdown
+        # state, and report() mixed closed trades from every prior ticker
+        # into one DataFrame. Verified directly: a synthetic two-ticker
+        # run left ticker A's loss bleeding into ticker B's reported
+        # results, with ticker B's own trades computed against ticker A's
+        # leftover equity instead of a clean initial_equity.
+        #
+        # Fix: build a brand-new PortfolioEngine for every call so no
+        # state can leak between tickers, but hand it this wrapper's
+        # long-lived brain/exec_model so parameter tuning from research
+        # scripts still applies.
+        portfolio_engine = PortfolioEngine(
+            tickers=[ticker],
+            start_date=self.start_date,
+            kill_threshold=self.kill_threshold,
+            research_mode=self.research_mode,
+        )
+        portfolio_engine.brain = self.brain
+        portfolio_engine.exec_model = self.exec_model
+
+        results_df = portfolio_engine.run()
 
         # PortfolioEngine returns {trade_id, ticker, direction, Net_R, PnL, Reason}
         # Walk-forward expects {trade_id, ticker, direction, entry_time, exit_time, exit_reason, Net_R, + features}
@@ -58,7 +78,7 @@ class BacktestEngine:
             return results_df
 
         enriched = []
-        for pos in self.portfolio_engine.portfolio.closed_trades:
+        for pos in portfolio_engine.portfolio.closed_trades:
             enriched.append({
                 "trade_id": pos.trade_id,
                 "ticker": pos.ticker,
@@ -66,7 +86,11 @@ class BacktestEngine:
                 "entry_time": pos.entry_time,
                 "exit_time": pos.exit_time,
                 "exit_reason": pos.exit_reason,
-                "Net_R": pos.calculate_net_r(engine.cost_model),
+                # BUG FIX: this was `engine.cost_model`, but `engine` was
+                # never defined anywhere in this method (leftover from an
+                # earlier version of this function) — guaranteed
+                # NameError on any call that closed at least one trade.
+                "Net_R": pos.calculate_net_r(portfolio_engine.cost_model),
                 **pos.features,
             })
 
