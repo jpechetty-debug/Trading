@@ -173,7 +173,7 @@ python -m pytest tests/ -v
 
 ---
 
-## ⚡ Key Parameters (V7.0)
+## ⚡ Key Parameters (V8.0)
 
 | Parameter | Value | Logic |
 | :--- | :--- | :--- |
@@ -185,4 +185,4 @@ python -m pytest tests/ -v
 
 ---
 
-*Phase 7 Upgrade: Quant-Institutional Grade Achieved.*
+*Phase 8 Upgrade: Quant-Institutional Grade Achieved.*
