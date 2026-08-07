@@ -15,6 +15,7 @@ from src.data.db import get_db
 from src.data.universe import NIFTY_200
 from src.scanner import Scanner
 from src.logger import get_logger
+from src.notifications import AlertManager
 import src.config as config
 
 log = get_logger(__name__)
@@ -31,6 +32,7 @@ class LiveScanner:
         self.exec_model = ExecutionModel()
         self.candle_builder = CandleBuilder(interval_seconds=config.CANDLE_INTERVAL_SECONDS)
         self.feed = MockFeed(tick_interval_ms=50)  # Fast simulation
+        self.alerts = AlertManager()
         
         # Market context (simplified for live mode)
         self.market_regime = "Bullish"
@@ -99,6 +101,11 @@ class LiveScanner:
                     shares=orders['shares'],
                     status="SIGNAL"
                 )
+                
+                # Fan out to Telegram / email
+                sent_via = self.alerts.send_signal_alert(result)
+                if sent_via:
+                    print(f"       📨 Alert sent via: {', '.join(sorted(sent_via))}")
         except Exception:
             # BUG FIX: this used to be `except Exception: pass`, which
             # hid every failure (including the nifty_df=None crash this

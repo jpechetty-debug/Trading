@@ -76,16 +76,17 @@ def check_entry_points(live: bool) -> bool:
         "run_portfolio_sim.py"
     )
 
+    import runpy
     for script in runner_scripts:
         script_path = ROOT / script
         if not script_path.exists():
             continue
         try:
-            ast.parse(script_path.read_text(encoding="utf-8"), filename=str(script_path))
-            print(f"  [OK] {script} syntax & import path OK")
-        except SyntaxError as e:
+            runpy.run_path(str(script_path))
+            print(f"  [OK] {script} imports and top-level code executed cleanly")
+        except Exception as e:
             ok = False
-            print(f"  [FAIL] SyntaxError in {script}: {e}")
+            print(f"  [FAIL] {script} failed to import: {type(e).__name__}: {e}")
 
     if not live:
         print("  [SKIP] skipping .run() - hits live Yahoo Finance, pass --live to execute for real")

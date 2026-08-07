@@ -44,10 +44,8 @@ PENALTY_LIQUIDITY = -5
 KILL_SCORE_THRESHOLD = 6.0 # V6.5 Institutional Standard
 
 # --- Data Parameters ---
-MIN_LIQUIDITY_VOLUME = 10000
 ADV_SHARE_FLOOR = 500_000 # Institutional Grade
 ADV_TURNOVER_FLOOR = 20_000_000 # ₹20cr floor
-MAX_SPREAD_PAISE = 0.10 # 10 paise spread limit
 
 
 # --- Config Validation ---
