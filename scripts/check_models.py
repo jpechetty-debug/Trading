@@ -11,7 +11,7 @@ else:
     genai.configure(api_key=api_key)
     print("Listing available models:")
     try:
-        with open("models.txt", "w") as f:
+        with open("models.txt", "w", encoding="utf-8") as f:
             for m in genai.list_models():
                 if 'generateContent' in m.supported_generation_methods:
                     f.write(f"{m.name}\n")

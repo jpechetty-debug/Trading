@@ -201,14 +201,14 @@ class WFOEngine:
         if not results:
              print("❌ No configurations passed the strict WFO criteria.")
              output_path = Path('research/wfo/results/wfo_results.csv')
-             pd.DataFrame().to_csv(output_path, index=False)
+             pd.DataFrame().to_csv(output_path, index=False, encoding="utf-8")
              return pd.DataFrame()
 
         results_df = pd.DataFrame(results)
         results_df = results_df.sort_values('val_exp', ascending=False)
         
         output_path = Path('research/wfo/results/wfo_results.csv')
-        results_df.to_csv(output_path, index=False)
+        results_df.to_csv(output_path, index=False, encoding="utf-8")
         
         print(f"\n{'='*60}")
         print(f"📊 WFO COMPLETE")

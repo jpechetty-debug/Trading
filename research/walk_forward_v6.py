@@ -69,11 +69,11 @@ class WalkForwardValidator:
             print(f"Expectancy:       {expectancy:.2f} R")
             print("=" * 60)
             
-            final_df.to_csv("research/walk_forward_results.csv", index=False)
+            final_df.to_csv("research/walk_forward_results.csv", index=False, encoding="utf-8")
             print("Full OOS log saved to research/walk_forward_results.csv")
         else:
             print("\n⚠️ No OOS trades generated during validation period.")
-            pd.DataFrame().to_csv("research/walk_forward_results.csv", index=False)
+            pd.DataFrame().to_csv("research/walk_forward_results.csv", index=False, encoding="utf-8")
 
 if __name__ == "__main__":
     # Test on a few tickers to keep it reasonably fast

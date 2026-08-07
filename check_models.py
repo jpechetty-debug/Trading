@@ -6,7 +6,7 @@ load_dotenv()
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 
 try:
-    with open("models.txt", "w") as f:
+    with open("models.txt", "w", encoding="utf-8") as f:
         print("Writing to file...")
         for m in genai.list_models():
             if 'generateContent' in m.supported_generation_methods:

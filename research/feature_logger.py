@@ -48,7 +48,7 @@ def collect_data():
     output_dir.mkdir(exist_ok=True, parents=True)
     
     output_path = output_dir / "midcap_features.csv"
-    final_df.to_csv(output_path, index=False)
+    final_df.to_csv(output_path, index=False, encoding="utf-8")
     
     print(f"\n✅ MINING COMPLETE. Saved {len(final_df)} samples to {output_path}")
     

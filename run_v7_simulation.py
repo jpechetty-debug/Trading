@@ -51,7 +51,7 @@ def run_simulation():
     
     # Save Report
     if not results_df.empty:
-        results_df.to_csv("research/data/v7_simulation_results.csv", index=False)
+        results_df.to_csv("research/data/v7_simulation_results.csv", index=False, encoding="utf-8")
         print("✅ Results saved to research/data/v7_simulation_results.csv")
 
 if __name__ == "__main__":

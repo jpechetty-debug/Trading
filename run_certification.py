@@ -87,7 +87,7 @@ def run_certification():
     # Step 3: Global Report
     if all_results:
         final_df = pd.concat(all_results)
-        final_df.to_csv("certification_results.csv", index=False)
+        final_df.to_csv("certification_results.csv", index=False, encoding="utf-8")
         print("\n✅ CERTIFICATION COMPLETE. Results saved to 'certification_results.csv'")
         print("\n📊 Summary Stats:")
         if 'Net_R' in final_df.columns:

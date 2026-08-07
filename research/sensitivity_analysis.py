@@ -52,7 +52,7 @@ def run_sensitivity_analysis():
     print("=" * 60)
     
     # Save to file
-    df.to_csv("research/sensitivity_report.csv", index=False)
+    df.to_csv("research/sensitivity_report.csv", index=False, encoding="utf-8")
     print("Report saved to research/sensitivity_report.csv")
 
 if __name__ == "__main__":

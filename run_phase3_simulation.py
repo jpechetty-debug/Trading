@@ -34,7 +34,7 @@ def run_phase3():
     # Save Report
     if not results_df.empty:
         output_path = "research/data/phase3_results.csv"
-        results_df.to_csv(output_path, index=False)
+        results_df.to_csv(output_path, index=False, encoding="utf-8")
         print(f"✅ Results saved to {output_path}")
         
         # Quick Stats

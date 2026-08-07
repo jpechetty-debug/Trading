@@ -72,7 +72,7 @@ def run_live_bot():
                         filename = "live_signals.csv"
                         df = pd.DataFrame([log_entry])
                         file_exists = os.path.isfile(filename)
-                        df.to_csv(filename, mode='a', header=not file_exists, index=False)
+                        df.to_csv(filename, mode='a', header=not file_exists, index=False, encoding="utf-8")
                         
                         print(f"   >>> 🔔 SIGNAL LOGGED: {res['ticker']} (Score: {res['kill_score']}) | Qty: {res['shares']}")
 
