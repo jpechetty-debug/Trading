@@ -32,7 +32,7 @@ python run_portfolio_sim.py     # Full-universe portfolio simulation
 
 ---
 
-## 🏗️ System Architecture (V7.0 Sovereignty)
+## 🏗️ System Architecture (V8.0)
 
 The system operates on an **Advanced Multi-Factor Risk Architecture**, decoupling data ingestion, signal generation, and risk execution.
 
@@ -90,7 +90,7 @@ sequenceDiagram
 
 ---
 
-## 🦅 V7.0 Advanced Strategy Pillars
+## 🦅 V8.0 Advanced Strategy Pillars
 
 ### 1. Dynamic Position Sizing (`src/execution/model.py`)
 Risk is no longer fixed. Sizing scales dynamically based on:
@@ -141,7 +141,7 @@ Exits trades before they hit stop/target if the "Alpha Edge" evaporates:
 ### 4. Real-time Notifications & Alerts (`src/notifications.py`)
 - **Multi-channel Broadcast**: Telegram and Email alerting logic for institutional signal pipelines.
 - **Robustness**: Fault-tolerant retries, deduplication per session, and gracefully degrades on network faults.
-- **Live Hooks**: Direct integration with the real-time websocket scanner (`src/live_scanner.py`).
+- **Live Hooks**: Wired into `src/live_bot.py` (the 5-minute polling bot); signals are broadcast to configured channels after being logged to `live_signals.csv`.
 
 ---
 
