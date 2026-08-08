@@ -3,6 +3,8 @@ Phase 3 Simulation Runner: High-Beta Adaptive Strategy
 """
 
 import sys
+if hasattr(sys.stdout, 'reconfigure'):
+    sys.stdout.reconfigure(encoding='utf-8')
 import os
 import pandas as pd
 from pathlib import Path

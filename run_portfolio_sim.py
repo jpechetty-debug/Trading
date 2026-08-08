@@ -1,3 +1,7 @@
+import sys
+if hasattr(sys.stdout, 'reconfigure'):
+    sys.stdout.reconfigure(encoding='utf-8')
+
 from src.backtest.portfolio_engine import PortfolioEngine
 from src.data.store import DataStore
 from src.data.universe import NIFTY_200

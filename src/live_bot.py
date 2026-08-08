@@ -1,6 +1,8 @@
 import time
 import pandas as pd
 import sys
+if hasattr(sys.stdout, 'reconfigure'):
+    sys.stdout.reconfigure(encoding='utf-8')
 import os
 from datetime import datetime
 

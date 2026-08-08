@@ -4,6 +4,8 @@ Scales the selectively validated Alpha Engine to the full Nifty 200 universe.
 """
 
 import sys
+if hasattr(sys.stdout, 'reconfigure'):
+    sys.stdout.reconfigure(encoding='utf-8')
 import os
 import pandas as pd
 from pathlib import Path

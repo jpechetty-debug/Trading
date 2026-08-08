@@ -4,6 +4,8 @@ Live Scanner - Real-time signal generation using WebSocket data.
 
 import asyncio
 import sys
+if hasattr(sys.stdout, 'reconfigure'):
+    sys.stdout.reconfigure(encoding='utf-8')
 import os
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
