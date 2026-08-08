@@ -1,0 +1,41 @@
+# Project Rules — Sovereign AI Trading Engine (NSE)
+
+## Context
+Quant trading system for Indian equities (NSE). Core pipeline: DataStore (yfinance → Parquet)
+→ RegimeDetector (breadth/regime) → BrainA V5 (kill score) → ExecutionModel (dynamic sizing)
+→ PortfolioConstraints → PortfolioEngine → structural exits (src/backtest/position.py).
+
+Signal/sizing/risk logic (src/, tests/) is fully deterministic and must run without any API key
+or network access. Only the Streamlit dashboard's BrainB commentary layer needs GEMINI_API_KEY,
+and only the live scan/regime check in src/app_v6.py needs a Yahoo Finance connection.
+
+## Non-negotiable constraints
+- **Zero point-in-time leakage**: any indicator, regime call, or exit signal must only reference
+  data available as-of the current bar. No forward-looking lookups into future rows of a DataFrame.
+- **UTF-8 everywhere**: all file I/O must be explicit `encoding="utf-8"`. Never rely on platform default.
+- **Risk multiplier limits are hard bounds, not defaults to tune away**: CONVICTION_MIN_MULT (0.75) /
+  CONVICTION_MAX_MULT (1.25), MAX_DD_THRESHOLD (0.15), BREADTH_THRESHOLD (0.35) in src/config.py are
+  institutional risk rails. Do not widen them without an explicit instruction from me — flag it instead.
+- Never touch `src/config.py`'s `validate_config()` invariants without keeping them in sync with any
+  new parameter you add — every new risk-relevant constant needs an assert.
+- `src/data/store.py` and anything under `src/live_*` touches real market data / real money paths —
+  treat changes there as higher-risk than research/backtest code.
+
+## Coding standards
+- Match existing style: plain functions/classes, no framework magic, pandas-vectorized where the
+  codebase already does that (see src/regime.py, src/backtest/position.py).
+- Keep new modules under the existing layout: src/backtest/, src/execution/, src/data/, src/utils/.
+- Every new risk/sizing rule needs a corresponding test in tests/, following the pattern in
+  tests/test_v7_logic.py (class-per-feature, method-per-case).
+
+## Test commands
+- Full suite (offline, no network/API key): `python -m pytest tests/ -v`
+- Local full health check: `python scripts/verify_project.py`
+- Config invariants only: `python -c "from src.config import validate_config; validate_config()"`
+
+## When making changes
+1. Run the full test suite before proposing anything as done.
+2. If a change touches config.py, RS/breadth/DD thresholds, or position sizing math, say so explicitly
+   and show the before/after values — don't bury a risk parameter change inside an unrelated diff.
+3. Never invent a "dry run" of run_phase3_simulation.py / run_v7_simulation.py as passing unless you
+   actually ran it — those scripts hit live Yahoo Finance and can fail for reasons unrelated to your change.

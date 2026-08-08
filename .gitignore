@@ -1,16 +1,60 @@
-.venv/
+# Python
 __pycache__/
-*.pyc
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+dist/
+build/
+*.egg
 *.pyo
 *.pyd
 .Python
-env/
-venv/
-ENV/
-env.bak/
-venv.bak/
 .pytest_cache/
 .coverage
 htmlcov/
+
+# Environment
+.env
+.venv/
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# Data & Storage
+src/data/storage/*.parquet
+src/data/*.db
+*.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs & Output
+*.log
+output.log
+backtest_summary.log
+backtest_result.txt
+
+# OS
+Thumbs.db
+.DS_Store
+desktop.ini
+
+# Research output (keep CSVs tracked, but not temp data)
+research/data/
+
+# Models
+models.txt
+models_list.txt
+
+# Deprecated archive
+src/_deprecated/
+
+# Additional local directories
 brain_b/
 files-12-extracted/
