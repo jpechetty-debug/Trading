@@ -58,3 +58,7 @@ src/_deprecated/
 # Additional local directories
 brain_b/
 files-12-extracted/
+
+# Knowledge graphs
+.codegraph/
+graphify-out/
