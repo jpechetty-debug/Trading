@@ -73,7 +73,8 @@ def check_entry_points(live: bool) -> bool:
         "run_phase3_simulation.py",
         "run_v7_simulation.py",
         "run_certification.py",
-        "run_portfolio_sim.py"
+        "run_portfolio_sim.py",
+        "run_local_backtest.py",
     )
 
     import runpy

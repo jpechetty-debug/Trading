@@ -25,7 +25,7 @@ src/
   utils/market_time.py          # IST market hours, EOD flatten logic
 
 data/midcap_universe.py     # Ticker universe definitions
-tests/                       # 86 tests, fully offline (fixtures, no live data)
+tests/                       # Offline regression tests (fixtures, no live data)
 scripts/                     # Dev utilities (check_env.py, check_models.py, verify_project.py)
 run_phase3_simulation.py    # Full sim — HITS LIVE YAHOO FINANCE
 run_v7_simulation.py         # Full sim — HITS LIVE YAHOO FINANCE
@@ -64,7 +64,7 @@ DataStore (Parquet cache)
 | `EOD_FLATTEN_HOUR:MINUTE` | 15:15 IST | Forced flatten before close |
 
 ## Verification workflow
-1. `python -m pytest tests/ -v` — must be 86/86 passing, offline.
+1. `python -m pytest tests/ -v` — all collected tests must pass, offline. Use the project `.venv`.
 2. `python scripts/verify_project.py` — syntax + config + tests + import-safety check on run scripts.
 3. Only run `python run_phase3_simulation.py` / `run_v7_simulation.py` directly (outside CI) when you
    want a real network-backed simulation — they are NOT part of the automated gate.

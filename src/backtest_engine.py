@@ -23,8 +23,10 @@ class BacktestEngine:
     expected by research scripts.
     """
 
-    def __init__(self, start_date="2024-01-01", kill_threshold=6.0):
+    def __init__(self, start_date="2024-01-01", kill_threshold=6.0, end_date=None, data_store=None):
         self.start_date = start_date
+        self.end_date = end_date
+        self.data_store = data_store
         self.kill_threshold = kill_threshold
 
         # Long-lived brain/exec_model instances so research scripts (e.g.
@@ -64,7 +66,8 @@ class BacktestEngine:
             tickers=[ticker],
             start_date=self.start_date,
             kill_threshold=self.kill_threshold,
-            
+            end_date=self.end_date,
+            data_store=self.data_store,
         )
         portfolio_engine.brain = self.brain
         portfolio_engine.exec_model = self.exec_model
@@ -80,10 +83,12 @@ class BacktestEngine:
         enriched = []
         for pos in portfolio_engine.portfolio.closed_trades:
             enriched.append({
+                **pos.features,
                 "trade_id": pos.trade_id,
                 "ticker": pos.ticker,
                 "direction": pos.direction,
                 "entry_time": pos.entry_time,
+                "signal_time": getattr(pos, 'signal_time', None),
                 "exit_time": pos.exit_time,
                 "exit_reason": pos.exit_reason,
                 # BUG FIX: this was `engine.cost_model`, but `engine` was
@@ -91,7 +96,7 @@ class BacktestEngine:
                 # earlier version of this function) — guaranteed
                 # NameError on any call that closed at least one trade.
                 "Net_R": pos.calculate_net_r(portfolio_engine.cost_model),
-                **pos.features,
+                "PnL": pos.calculate_net_pnl(portfolio_engine.cost_model),
             })
 
         log.info("Single-Ticker Complete. Closed Trades: %d", len(enriched))

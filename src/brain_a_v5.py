@@ -9,6 +9,9 @@ from src.models import Features
 log = get_logger(__name__)
 
 class BrainAV5:
+    # 60 bars for the longest required rolling return statistic + 50 usable bars.
+    MIN_RAW_BARS = 110
+
     def __init__(self, rs_lookback=config.RS_LOOKBACK):
         self.interval = "5m"
         self.rs_lookback = rs_lookback
@@ -57,14 +60,14 @@ class BrainAV5:
         df = df.copy()
         df['EMA_20'] = ta.ema(df['Close'], length=20)
         df['EMA_50'] = ta.ema(df['Close'], length=50)
-        df['EMA_200'] = ta.ema(df['Close'], length=200)
         df['ATR'] = ta.atr(df['High'], df['Low'], df['Close'], length=14)
         df['VWAP'] = ta.vwap(df['High'], df['Low'], df['Close'], df['Volume'])
         
         # UPGRADE 6.4: Advanced Metrics
         df['Turnover'] = df['Close'] * df['Volume']
-        df['Resistance'] = df['High'].rolling(window=20).max()
-        df['Support'] = df['Low'].rolling(window=20).min()
+        # Established levels exclude the signal candle itself.
+        df['Resistance'] = df['High'].rolling(window=20).max().shift(1)
+        df['Support'] = df['Low'].rolling(window=20).min().shift(1)
         
         # Realized Volatility (Std Dev of returns)
         df['Realized_Vol_20'] = df['Close'].pct_change().rolling(20).std()
@@ -87,6 +90,12 @@ class BrainAV5:
     def resample_to_15m(self, df):
         logic = {'Open': 'first', 'High': 'max', 'Low': 'min', 'Close': 'last', 'Volume': 'sum'}
         df_15m = df.resample('15min').apply(logic).dropna()
+        if df.empty:
+            return df_15m
+        counts = df['Close'].resample('15min').count()
+        available_until = df.index[-1] + pd.Timedelta(seconds=config.CANDLE_INTERVAL_SECONDS)
+        df_15m = df_15m.loc[(counts.reindex(df_15m.index) == 3)
+                            & (df_15m.index + pd.Timedelta(minutes=15) <= available_until)]
         df_15m['EMA_20'] = ta.ema(df_15m['Close'], length=20)
         return df_15m
 
@@ -255,20 +264,20 @@ class BrainAV5:
            (direction == "SHORT" and market_regime == "Bearish"):
             score += config.SCORE_CONTEXT; reasons.append("Market Aligned")
 
-        # 5. V6.4 UPGRADE: Institutional Liquidity Filter
-        # combined ADV/Turnover/Spread check
+        # 5. Intrabar liquidity screen: these are 20 five-minute bar averages,
+        # not average daily volume/turnover or an observed bid/ask spread.
         # spread_proxy: High-Low vs ATR
         spread_proxy = (row['High'] - row['Low']) / row['ATR'] if row['ATR'] > 0 else 0
         
         liquidity_ok = (
-            row['Vol_MA_20'] > config.ADV_SHARE_FLOOR and
-            row['Turnover_MA_20'] > config.ADV_TURNOVER_FLOOR and
+            row['Vol_MA_20'] > config.MIN_AVG_5M_VOLUME and
+            row['Turnover_MA_20'] > config.MIN_AVG_5M_TURNOVER and
             spread_proxy < 1.5 # Proxy for manageable spread
         )
 
         if not liquidity_ok:
             score += config.PENALTY_LIQUIDITY
-            reasons.append("💧 Insufficient Institutional Liquidity")
+            reasons.append("💧 Insufficient five-minute liquidity or excessive candle range")
 
         # --- FEATURE EXTRACTION (Phase 2) ---
         features = Features(
@@ -286,13 +295,20 @@ class BrainAV5:
 
         return max(0, min(10, score)), reasons, direction, features.to_dict()
 
-    def analyze_slice(self, ticker, stock_slice, nifty_slice, market_regime):
+    def analyze_slice(self, ticker, stock_slice, nifty_slice, market_regime, *, technicals_ready=False):
         """
         PURE FUNCTION: No API calls. 100% Deterministic.
         Used for both Live Trading and Backtesting.
         """
-        # 1. Compute Technicals on the slice
-        df = self.calculate_technicals(stock_slice.copy())
+        # Reuse causal indicators from the full prefix instead of restarting
+        # recursive indicators on every rolling analysis window.
+        if stock_slice is None or stock_slice.empty:
+            return None
+        if not technicals_ready and len(stock_slice) < self.MIN_RAW_BARS:
+            return None
+        df = stock_slice.copy() if technicals_ready else self.calculate_technicals(stock_slice)
+        if len(df) < 50:
+            return None
         
         # 2. Resample (Simulating 15m context)
         df_15m = self.resample_to_15m(df)
@@ -321,8 +337,19 @@ class BrainAV5:
             "features": features,
             "swing_high": df['Swing_High'].iloc[-1],
             "swing_low": df['Swing_Low'].iloc[-1],
-            "resistance": df['Resistance'].iloc[-1],
-            "support": df['Support'].iloc[-1]
+            **self._target_barriers(df.iloc[-1])
+        }
+
+    @staticmethod
+    def _target_barriers(row):
+        """None means the prior level is broken, so it is no longer a target cap.
+
+        Keep raw levels in features for audit. Only the completed signal close
+        can establish a breakout; a later opening gap cannot remove a barrier.
+        """
+        return {
+            'resistance': float(row['Resistance']) if row['Resistance'] > row['Close'] else None,
+            'support': float(row['Support']) if row['Support'] < row['Close'] else None,
         }
 
     def analyze_ticker(self, ticker, market_regime="Neutral", nifty_df=None):
@@ -346,7 +373,7 @@ class BrainAV5:
 
         # Decision Filter
         decision = "WAIT"
-        if kill_score >= 6: decision = "TRADE"
+        if kill_score >= config.KILL_SCORE_THRESHOLD: decision = "TRADE"
         
         # Global Veto
         if market_regime == "Bullish" and direction == "SHORT": decision = "WAIT"
@@ -364,6 +391,5 @@ class BrainAV5:
             "features": features,
             "swing_high": df['Swing_High'].iloc[-1],
             "swing_low": df['Swing_Low'].iloc[-1],
-            "resistance": df['Resistance'].iloc[-1],
-            "support": df['Support'].iloc[-1]
+            **self._target_barriers(df.iloc[-1])
         }

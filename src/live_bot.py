@@ -1,27 +1,42 @@
 import time
 import pandas as pd
 import sys
-if hasattr(sys.stdout, 'reconfigure'):
-    sys.stdout.reconfigure(encoding='utf-8')
 import os
+import math
+from numbers import Real
 from datetime import datetime
 
 # Ensure project root is in path
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+if __name__ == '__main__' and not __package__:
+    sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from src.utils.market_time import MarketClock, IST
-from src.scanner import Scanner
+from src.scanner import Scanner, ALL_TICKERS
 from src.notifications import AlertManager
+import src.config as config
+
+
+def startup_summary():
+    return (f'V{config.SYSTEM_VERSION} SIGNAL ALERT BOT | Universe: {len(ALL_TICKERS)} tickers | '
+            f'Alert score >= {config.ALERT_KILL_SCORE_THRESHOLD:g} | '
+            'Indicative quantities; no broker/account risk enforcement')
+
+
+def should_alert(signal):
+    score = signal.get('kill_score')
+    return (isinstance(score, Real) and math.isfinite(score)
+            and score >= config.ALERT_KILL_SCORE_THRESHOLD
+            and signal.get('valid_rr', False) and signal.get('shares', 0) > 0)
 
 def run_live_bot():
+    # Configure the interactive console only when running, never on import.
+    if hasattr(sys.stdout, 'reconfigure'):
+        sys.stdout.reconfigure(encoding='utf-8')
     clock = MarketClock()
     scanner = Scanner()
     alerts = AlertManager()
     
-    # We will use the V6.1 Scanner which already has BrainAV5 and ExecutionModel built-in
-    
-    print("🦅 V6.2 LIVE HEADLESS BOT INITIALIZED")
-    print(f"   Mode: Parallel Scan (60 Tickers) | Risk: ₹10,000/trade")
+    print(startup_summary())
     if not alerts.telegram.enabled and not alerts.email.enabled:
         print("   ⚠️  No alert channels configured — signals will only be logged to live_signals.csv.")
         print("      Run `python -m src.notifications` after setting up .env to enable Telegram/email.")
@@ -37,6 +52,8 @@ def run_live_bot():
 
         # 2. Market is Open - Wait for Candle Close
         clock.wait_for_next_candle(interval_minutes=5)
+        if not clock.is_market_open()[0]:
+            continue
         
         timestamp = datetime.now(IST).strftime('%Y-%m-%d %H:%M:%S')
         print(f"\n⚡ [{timestamp}] Triggering 5m Scan...")
@@ -51,8 +68,7 @@ def run_live_bot():
                 print(f"   Found {len(results)} Setup(s). Filtering for automation...")
                 
                 for res in results:
-                    # Double check Kill Score Threshold for Automation (Institutional Tier)
-                    if res['kill_score'] >= 7.0: 
+                    if should_alert(res):
                         
                         # Log to CSV (The Live Feed)
                         log_entry = {

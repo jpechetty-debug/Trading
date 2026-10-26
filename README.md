@@ -1,34 +1,114 @@
-# Sovereign AI Trading Engine V8.0 (The Quant Institutional) 🦅
+# Sovereign Trading Engine V8.0
 
-A top-tier quantitative trading ecosystem for the Indian Stock Market (NSE), hardened with **Dynamic Alpha Sizing**, **Portfolio Volatility Targeting**, **Market Breadth Intelligence**, and **Live Alerts Integration**.
+A five-minute NSE research and signal-generation engine with deterministic scoring, portfolio simulation, risk controls, and optional alerts. The offline verification suite covers execution timing, accounting, data quality, and failure handling. This is a research/alerting system; broker order management and production certification are not implemented.
 
 ---
 
 ## 🚀 Quick Start
 
 ```bash
-# 1. Install dependencies
-pip install -r requirements.txt
+# 1. Use Python 3.12 in an isolated environment
+python -m venv .venv
+# Windows PowerShell: .\.venv\Scripts\Activate.ps1
+# Linux/macOS: source .venv/bin/activate
+python -m pip install -r requirements.txt
+python -m pip check
 
 # 2. Configure your Gemini API key (used for the BrainB AI commentary layer in the dashboard;
 #    core signal/sizing/risk logic is fully deterministic and works without it)
 cp .env.example .env
 # then edit .env and set GEMINI_API_KEY=<your real key>
 
-# 3. Run the test suite (82 tests, no API key or network required)
+# 3. Run the offline test suite (no API key or network required)
 python -m pytest tests/ -v
 
 # 4. Launch the live dashboard
 streamlit run src/app_v6.py
 ```
 
-**Note:** The dashboard's "Check Market Regime" and "Run Scan" actions fetch live data via `yfinance` (Yahoo Finance) at runtime — an internet connection with access to Yahoo Finance is required for the live demo. If that data fetch fails for any reason, the system is designed to degrade gracefully to a "Neutral" regime rather than crash (verified in `src/scanner.py`).
+**Live data:** Dashboard actions fetch Yahoo data. Signal generation requires fresh, completed five-minute stock and benchmark candles and at least 80% usable universe coverage. Missing/stale data disables new signals. The daily regime display is separate from the intraday execution regime. Scanner quantities are indicative: they do not reflect a connected account or enforce its portfolio limits.
 
 Other useful entry points:
 ```bash
 python run_certification.py     # Backtest tearsheet across 3 benchmark tickers
 python run_portfolio_sim.py     # Full-universe portfolio simulation
 ```
+
+### Offline analysis and data from other folders
+
+Audit existing market files before reusing them. This command reads source files
+without modifying them or downloading data:
+
+```powershell
+python scripts/audit_local_data.py "D:\MarketData" --output research/data_audit.json
+```
+
+The five-minute strategy requires real Open, High, Low, Close, and Volume columns,
+plus timestamp-aligned `^NSEI` benchmark data. Date/Datetime/Timestamp columns or a
+Parquet datetime index are supported. Aware timestamps convert to IST before the
+timezone is removed; naive timestamps denote IST. Invalid prices, duplicate
+timestamps, missing volume, and incompatible intervals are rejected. Missing
+candles are retained as gaps.
+
+Use compatible CSV/Parquet data from one or more folders with downloads disabled:
+
+```powershell
+python run_local_backtest.py --data-dir "D:\MarketData" --data-dir "D:\OtherMarketData" --tickers RELIANCE.NS TCS.NS --start-date 2026-09-01 --end-date 2026-10-01 --output research/offline_backtest.json
+```
+
+Folders are read-only. File names are `RELIANCE.NS.parquet`,
+`RELIANCE.NS_5m.csv`, or `RELIANCE.NS.csv`; the benchmark uses `^NSEI` in the
+same naming scheme. Output must be outside the source folders. The Python API
+also accepts `DataStore(search_dirs=[...], allow_network=False)` through
+`PortfolioEngine(..., data_store=store)`. `start_date` is inclusive and `end_date`
+is exclusive; warm-up history before the start is retained. Only candles
+completed by the end are included. Missing requested symbols fail the run.
+
+The 25 October 2026 cross-project audit inspected 20 saved daily OHLC histories
+from `tori-scanner`. They lack volume and are incompatible with this intraday
+strategy. See [the audit](research/local_data_audit.json) and
+[project review](docs/project_review.md) for evidence and remaining limitations.
+
+Backtests use completed-bar signals and fill at the next contiguous five-minute
+bar's open. Missing bars, expired signals, overnight carry, gaps, risk/reward,
+cash including modeled fees, and portfolio limits are checked before entry.
+Opening exits settle before new orders; later intrabar profits cannot fund an
+earlier opening fill. Reports include signal/entry/exit times, quote times,
+share quantities, net PnL, and rejection events.
+
+Scoring reuses prepared indicators and no longer depends on the unused EMA200.
+Support/resistance come from the preceding 20 bars. A level already broken by
+the completed signal close does not cap its ATR target; an unbroken level still
+does. RR and stop-distance sizing are rechecked at the opening fill. See the
+[scoring rubric](docs/scoring_rubric.md) for exact units and target rules.
+
+Equity includes open PnL and estimated liquidation costs. Daily loss breaches
+block entries for the rest of the session; the drawdown breaker liquidates and
+stops the simulation. Repeated runs reset state. Remaining positions close at
+the last observed price, with stale marks labelled. These are model assumptions,
+not evidence of obtainable fills or profitability.
+
+Default stop-distance risk is capped at 1% of current equity per trade and 5%
+in aggregate. The daily loss threshold is twice the smaller of the base rupee
+risk and the start-of-day equity-capped trade budget. Sector and correlated
+positions also face actual stop-distance risk limits. Gaps and fees can exceed
+these nominal risk amounts. Defaults are engineering controls, not calibrated
+investment recommendations.
+
+The simulator reserves full notional for both longs and shorts, plus estimated
+fees, and does not model leverage or broker margin. Risk budgets are ceilings;
+available capital can reduce the executed risk and number of simultaneous
+positions. The 0.75–1.25 band bounds the conviction multiplier alone.
+
+Streaming mode defaults to `MockFeed`: simulated signals cannot write trade
+records or send alerts. A real feed must be injected, history seeded, and alerts
+explicitly enabled. `Tick.volume` must be incremental; adapters for cumulative
+volume must convert it. Streaming failures cancel tasks and disconnect the feed.
+The polling bot's alert threshold is separately configurable through
+`ALERT_KILL_SCORE_THRESHOLD` (default 7.0). Its banner identifies outputs as
+indicative signals without broker/account risk enforcement.
+
+Run the complete offline gate with `python scripts/verify_project.py`.
 
 ---
 
@@ -75,7 +155,7 @@ sequenceDiagram
     participant P as PortfolioEngine
     
     P->>D: Load Universe Data
-    loop Daily Simulation
+    loop Five-Minute Simulation
         P->>R: Get Breadth & Regime (Nifty + Universe)
         Note right of R: V7.0 Breadth Floor: 35%
         R-->>P: Authorized Status
@@ -84,7 +164,7 @@ sequenceDiagram
         P->>E: Generate Order (Vol, DD, Conviction)
         Note over E: Dynamic Risk Scaling
         E-->>P: Order (Shares, Entry, Stop, Target)
-        P->>P: Check Constraints & Execute
+        P->>P: Queue signal; revalidate and fill at next open
     end
 ```
 
@@ -111,10 +191,11 @@ annualized_vol = portfolio_vol * (252 ** 0.5)
 vol_scalar = min(1.5, config.TARGET_PORTFOLIO_VOL / annualized_vol) if annualized_vol > 0 else 1.0
 
 final_risk = self.base_risk_inr * conviction * dd_scalar * vol_scalar
+# At portfolio entry: min(final_risk, equity * config.MAX_TRADE_RISK_PCT)
 ```
 
 ### 2. Market Breadth Intelligence (`src/regime.py`)
-- **Universe Scan**: Real-time calculation of % of stocks above their 50-day EMA.
+- **Universe Scan**: Real-time calculation of % of stocks above their 50-bar EMA.
 - **Institutional Veto**: Automatically halts all long entries if breadth falls below **35%**, even if Nifty is bullish.
 
 ```python
@@ -149,7 +230,7 @@ Exits trades before they hit stop/target if the "Alpha Edge" evaporates:
 
 | Version | Milestone | Key Features |
 | :--- | :--- | :--- |
-| **V8.0** | **Institutional Live System** | Real-time multi-channel notifications (Telegram/Email), advanced structural alignments, unified testing (82 passing tests). |
+| **V8.0** | **Institutional Live System** | Real-time multi-channel notifications (Telegram/Email), advanced structural alignments, offline regression testing. |
 | **V7.2** | **Stability & State Isolation** | Fixed cross-ticker state leakage in multi-ticker runs, resolved trade report `NameError`, added engine unit tests. |
 | **V7.1** | **Resilience & Safety** | BrainB UI integration, Capital & Leverage Limits, 59-day Backtest Engine dates, E2E integration testing, and 71 active tests. |
 | **V7.0** | **The Quant Institutional** | Dynamic Sizing, Portfolio Vol Targeting, Market Breadth, Structural Exits. |
@@ -161,7 +242,7 @@ Exits trades before they hit stop/target if the "Alpha Edge" evaporates:
 
 ## 🧪 Verification & Reliability
 
-- **Universal Test Suite**: 82 active tests coverage including Portfolio Engine E2E tests, notification systems, and multi-ticker state isolation logic.
+- **Offline Regression Suite**: execution timing, nonempty trade/report integration, cash and risk limits, walk-forward boundaries, stale data rejection, streaming cleanup, and accounting reconciliation. See the dated [review](docs/project_review.md) for verification results.
 - **Dynamic Sizing Tests**: Verified conviction scalars (7.5k - 12.5k risk bands).
 - **Structural Exit Tests**: Verified automated exits on RS/EMA/ATR shifts.
 - **Breadth Verification**: Verified veto triggers on weak market internalities.
@@ -182,7 +263,9 @@ python -m pytest tests/ -v
 | **Breadth Floor** | `35%` | Universe health requirement |
 | **Gap Multiplier** | `1.5x ATR` | Volatility-aware gap protection |
 | **Risk Multiplier** | `0.75 - 1.25` | Conviction-based sizing band |
+| **Trade / Aggregate Risk Caps** | `1% / 5%` | Initial stop-distance exposure / equity |
+| **Breadth Coverage** | `80%` | Minimum usable configured universe |
 
 ---
 
-*Phase 8 Upgrade: Quant-Institutional Grade Achieved.*
+Production readiness still requires vetted point-in-time data, an exchange calendar, a durable order/fill ledger, broker reconciliation, operational monitoring, and controlled paper-trading validation. See [the review](docs/project_review.md).

@@ -10,6 +10,8 @@ Single Source of Truth for:
   - Intermediate trend gatekeeper (20-EMA veto for longs)
 """
 import pandas as pd
+import numpy as np
+import src.config as config
 from src.logger import get_logger
 
 log = get_logger(__name__)
@@ -53,11 +55,15 @@ class RegimeDetector:
                 "breadth_score": float
             }
         """
+        values = (nifty_close, nifty_ema_primary, nifty_ema_gatekeeper, breadth_score)
+        if not all(np.isfinite(v) for v in values) or min(values[:3]) <= 0 or not 0 <= breadth_score <= 1:
+            return {'regime': 'Neutral', 'longs_authorized': False,
+                    'shorts_authorized': False, 'breadth_score': breadth_score}
         regime = "Bullish" if nifty_close > nifty_ema_primary else "Bearish"
         
         # V7.0: Breadth Filter
         # Veto longs if breadth < 35%
-        breadth_ok = breadth_score >= 0.35
+        breadth_ok = breadth_score >= config.BREADTH_THRESHOLD
         
         longs_ok = (nifty_close > nifty_ema_gatekeeper) and breadth_ok
         shorts_ok = True  # No gatekeeper for shorts currently
@@ -86,7 +92,7 @@ class RegimeDetector:
         if not universe_data:
             return 0.5
 
-        if getattr(self, '_breadth_cache_id', None) != id(universe_data):
+        if getattr(self, '_breadth_cache_source', None) is not universe_data:
             closes = {}
             emas = {}
             for ticker, df in universe_data.items():
@@ -117,6 +123,7 @@ class RegimeDetector:
                 self._breadth_series = above_count.where(valid_count > 0) / valid_count.where(valid_count > 0)
 
             self._breadth_cache_id = id(universe_data)
+            self._breadth_cache_source = universe_data
 
         if timestamp in self._breadth_series.index:
             val = self._breadth_series.loc[timestamp]

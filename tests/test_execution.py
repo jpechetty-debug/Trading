@@ -46,6 +46,12 @@ class TestExecutionModel:
 
 
 class TestNSECostModel:
+    def test_short_cost_uses_sell_at_entry_and_buy_at_exit(self):
+        model = NSECostModel()
+        expected = (model.calculate_leg_cost(100, 100, 'SELL', adv=1_000_000)
+                    + model.calculate_leg_cost(80, 100, 'BUY', adv=1_000_000))
+        assert model.round_trip_cost(100, 80, 100, adv=1_000_000, direction='SHORT') == pytest.approx(expected)
+
     """Tests for NSE transaction cost calculations."""
 
     def test_stt_sell_side_only(self):
@@ -58,3 +64,30 @@ class TestNSECostModel:
         model = NSECostModel()
         cost = model.round_trip_cost(100.0, 110.0, 100, adv=1_000_000)
         assert cost > 0, "Round-trip cost must be positive"
+
+
+@pytest.mark.parametrize('direction,levels', [('LONG', {'resistance': 50}), ('SHORT', {'support': 200})])
+def test_wrong_side_targets_are_rejected(direction, levels):
+    order = ExecutionModel().generate_orders({'close': 100.0, 'atr': 5.0, 'direction': direction, **levels})
+    assert not order['valid_rr']
+    assert order['shares'] == 0
+
+
+@pytest.mark.parametrize('values', [{'atr': 0}, {'atr': -1}, {'close': float('nan')},
+                                  {'atr': float('inf')}, {'direction': 'NEUTRAL'},
+                                  {'portfolio_vol': float('nan')}, {'current_dd': -0.1}])
+def test_invalid_sizing_inputs_do_not_open_orders(values):
+    signal = {'close': 100.0, 'atr': 5.0, 'direction': 'LONG'}
+    kwargs = {k: v for k, v in values.items() if k in {'portfolio_vol', 'current_dd'}}
+    signal.update({k: v for k, v in values.items() if k not in kwargs})
+    order = ExecutionModel().generate_orders(signal, **kwargs)
+    assert not order['valid_rr']
+    assert order['shares'] == 0
+
+
+def test_share_count_respects_risk_at_rounded_execution_prices():
+    model = ExecutionModel(base_risk_inr=1)
+    order = model.generate_orders({'close': 1.0, 'atr': 0.011, 'direction': 'LONG', 'resistance': 10})
+    risk = model.calculate_dynamic_risk(6, 0.12 / 252**0.5, 0)
+    assert order['valid_rr']
+    assert order['shares'] * (order['entry'] - order['stop']) <= risk

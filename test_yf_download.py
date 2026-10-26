@@ -1,7 +1,7 @@
 import yfinance as yf
 import pandas as pd
 
-def test_fetch():
+def main():
     print("Testing ^NSEI...")
     df = yf.download("^NSEI", period="5d", interval="1d")
     print(f"^NSEI Empty: {df.empty}")
@@ -15,4 +15,4 @@ def test_fetch():
         print(df_bees.tail())
 
 if __name__ == "__main__":
-    test_fetch()
+    main()

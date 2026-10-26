@@ -9,6 +9,21 @@ from src.execution.costs import NSECostModel
 import src.config as config
 
 
+@pytest.mark.parametrize('direction,stop,target,opening', [
+    ('LONG', 95, 110, 112), ('SHORT', 105, 90, 88),
+])
+def test_opening_target_is_filled_before_later_intrabar_stop(direction, stop, target, opening):
+    pos = Position('gap', 'A.NS', direction, 100, stop, target, 5, 10)
+    timestamp = datetime(2024, 1, 1, 10, 0)
+    pos.update({'Open': opening, 'High': 120, 'Low': 80, 'Close': 100}, timestamp)
+    assert pos.exit_reason == 'TARGET_GAP'
+    assert pos.exit_price == opening
+    pos._close(100, 'DUPLICATE', datetime(2024, 1, 1, 10, 5))
+    assert pos.exit_reason == 'TARGET_GAP'
+    assert pos.exit_price == opening
+    assert pos.exit_time == timestamp
+
+
 class TestStopLoss:
     """Basic stop-loss fill tests."""
 

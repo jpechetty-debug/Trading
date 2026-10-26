@@ -54,7 +54,10 @@ class WFOEngine:
     
     def run_backtest_with_params(self, ticker, params, period):
         """Run backtest with specific parameters."""
-        engine = BacktestEngine(start_date=period['start'])
+        # This API's period dates are inclusive calendar dates. The simulation
+        # API uses a half-open interval, so include the whole last session.
+        end_exclusive = pd.Timestamp(period['end']).normalize() + pd.Timedelta(days=1)
+        engine = BacktestEngine(start_date=period['start'], end_date=end_exclusive)
         
         # Inject parameters
         engine.brain.rs_lookback = params['rs_lookback']
@@ -64,18 +67,6 @@ class WFOEngine:
         
         # Run simulation
         results_df = engine.run(ticker)
-        
-        if results_df.empty:
-            return self.calculate_metrics(results_df)
-
-        # Filter to period
-        # Ensure timestamp column availability
-        if 'exit_time' in results_df.columns:
-            results_df['exit_time'] = pd.to_datetime(results_df['exit_time'])
-            results_df = results_df[
-                (results_df['exit_time'] >= period['start']) &
-                (results_df['exit_time'] <= period['end'])
-            ]
         
         return self.calculate_metrics(results_df)
     

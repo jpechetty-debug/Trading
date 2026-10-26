@@ -132,6 +132,28 @@ class TestRelativeStrength:
 
 
 class TestAnalyzeSlice:
+    def test_precomputed_151_bar_window_produces_a_signal(self, brain):
+        idx = pd.date_range('2024-01-01 09:15', periods=450, freq='5min')
+        close = 100 + np.arange(len(idx)) * 0.03
+        raw = pd.DataFrame({'Open': close - 0.02, 'High': close + 0.1,
+                            'Low': close - 0.1, 'Close': close, 'Volume': 1_000_000.0}, index=idx)
+        prepared = brain.calculate_technicals(raw).tail(151)
+        before = prepared.copy(deep=True)
+        nifty = pd.DataFrame({'Close': 20_000.0}, index=idx)
+        result = brain.analyze_slice('TEST.NS', prepared, nifty, 'Bullish', technicals_ready=True)
+        assert result is not None
+        assert result['direction'] == 'LONG'
+        assert result['timestamp'] == idx[-1]
+        assert result['atr'] > 0
+        pd.testing.assert_frame_equal(prepared, before)
+
+    def test_precomputed_indicators_do_not_see_future_prices(self, brain):
+        idx = pd.date_range('2024-01-01 09:15', periods=450, freq='5min')
+        raw = _make_ohlcv(idx, drift=0.02, seed=22)
+        prefix = brain.calculate_technicals(raw.iloc[:400])
+        whole = brain.calculate_technicals(raw).loc[:idx[399]]
+        pd.testing.assert_frame_equal(prefix, whole)
+
     def test_pure_function_no_mutation_of_inputs(self, brain, aligned_frames):
         stock_df, nifty_df = aligned_frames
         stock_before = stock_df.copy()

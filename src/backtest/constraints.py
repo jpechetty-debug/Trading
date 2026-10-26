@@ -9,6 +9,7 @@ Portfolio Constraints V6.5 — Risk management with:
 import pandas as pd
 import numpy as np
 import os
+from pathlib import Path
 import src.config as config
 from src.logger import get_logger
 
@@ -21,13 +22,19 @@ MAX_CLUSTER_EXPOSURE_PCT = 0.4  # Max 40% of risk capacity in a single cluster
 
 
 class PortfolioConstraints:
-    def __init__(self, sector_file="data/nse_sectors.csv", max_positions=5, max_dd_pct=0.15):
+    def __init__(self, sector_file=None, max_positions=5, max_dd_pct=None):
         self.max_positions = max_positions
-        self.max_drawdown = max_dd_pct
+        self.max_drawdown = config.MAX_DD_THRESHOLD if max_dd_pct is None else max_dd_pct
         self.max_sector_exposure = 0.4
+        if not isinstance(max_positions, int) or max_positions <= 0:
+            raise ValueError('max_positions must be a positive integer')
+        if not np.isfinite(self.max_drawdown) or not 0 < self.max_drawdown < 1:
+            raise ValueError('max_dd_pct must be in (0, 1)')
 
         # Load Sector Map (still used as fallback when price data unavailable)
-        self.sector_map = self._load_sector_map(sector_file)
+        self.sector_map = self._load_sector_map(
+            sector_file if sector_file is not None else Path(__file__).resolve().parents[2] / 'data/nse_sectors.csv'
+        )
 
         # V6.5: Correlation Cache
         self._correlation_cache = {}        # {(ticker_a, ticker_b): correlation}
@@ -36,6 +43,13 @@ class PortfolioConstraints:
 
         # Drawdown Tracking
         self.peak_equity = 100000.0
+
+    def reset_tracking(self, initial_equity):
+        """Reset per-run state while preserving configured limits and sectors."""
+        self.peak_equity = initial_equity
+        self._correlation_cache.clear()
+        self._price_data.clear()
+        self._cache_timestamp = None
 
     def _load_sector_map(self, filepath):
         if os.path.exists(filepath):
@@ -59,6 +73,9 @@ class PortfolioConstraints:
         Args:
             data_map: {ticker: DataFrame with 'Close' column}
         """
+        self._price_data.clear()
+        self._correlation_cache.clear()
+        self._cache_timestamp = None
         for ticker, df in data_map.items():
             if ticker == "^NSEI":
                 continue
@@ -76,6 +93,9 @@ class PortfolioConstraints:
         """
         # Cache is keyed by (pair, as_of) so a query at time T never reuses
         # a correlation computed with data from T' > T ("future" for T).
+        if self._cache_timestamp != as_of:
+            self._correlation_cache.clear()
+            self._cache_timestamp = as_of
         pair_key = (tuple(sorted([ticker_a, ticker_b])), as_of)
         if pair_key in self._correlation_cache:
             return self._correlation_cache[pair_key]
@@ -121,17 +141,23 @@ class PortfolioConstraints:
 
     def check_system_health(self, current_equity):
         """V6.1: The Portfolio Circuit Breaker."""
+        if not np.isfinite(current_equity) or not np.isfinite(self.peak_equity) or self.peak_equity <= 0:
+            return False, 'INVALID_EQUITY'
         self.peak_equity = max(self.peak_equity, current_equity)
         drawdown = (self.peak_equity - current_equity) / self.peak_equity
 
-        if drawdown > self.max_drawdown:
+        if current_equity <= 0 or drawdown >= self.max_drawdown:
             return False, f"DRAWDOWN_BREAKER_TRIGGERED_(-{drawdown*100:.1f}%)"
         return True, "OK"
 
     def check_daily_loss_limit(self, current_equity, sod_equity):
         """Daily Circuit Breaker (2R Loss Limit)."""
+        if not np.isfinite(current_equity) or not np.isfinite(sod_equity) or sod_equity <= 0:
+            return False, 'INVALID_EQUITY'
         daily_loss = sod_equity - current_equity
-        risk_limit = 2 * config.RISK_PER_TRADE
+        # Match the equity-capped trade budget. A small account must not inherit
+        # a daily allowance based on the much larger nominal rupee budget.
+        risk_limit = 2 * min(config.RISK_PER_TRADE, sod_equity * config.MAX_TRADE_RISK_PCT)
 
         if daily_loss >= risk_limit:
             return False, f"DAILY_LOSS_LIMIT_REACHED_(-₹{daily_loss:.2f})"
@@ -170,7 +196,11 @@ class PortfolioConstraints:
 
         return True, "OK"
 
-    def can_open_trade(self, portfolio, ticker, current_equity, timestamp=None):
+    def can_open_trade(self, portfolio, ticker, current_equity, timestamp=None, order=None):
+        if not np.isfinite(current_equity) or current_equity <= 0:
+            return False, 'INVALID_EQUITY'
+        if portfolio.is_invested(ticker):
+            return False, 'DUPLICATE_POSITION'
         if len(portfolio.open_positions) >= self.max_positions:
             return False, "MAX_POSITIONS"
 
@@ -183,6 +213,32 @@ class PortfolioConstraints:
 
         if (current_sector_count + 1) / self.max_positions > self.max_sector_exposure:
             return False, f"SECTOR_FULL_({sector})"
+
+        # The execution-time gate uses actual initial stop-distance exposure.
+        # Count-only calls remain available as a preliminary screen.
+        if order is not None:
+            new_risk = abs(order['entry'] - order['stop']) * order['shares']
+            if not np.isfinite(new_risk) or new_risk <= 0:
+                return False, 'INVALID_ORDER_RISK'
+            if new_risk > current_equity * config.MAX_TRADE_RISK_PCT + 1e-8:
+                return False, 'TRADE_RISK_CAP'
+            exposures = [(pos, abs(pos.entry - pos.initial_stop) * pos.shares)
+                         for pos in portfolio.open_positions]
+            if any(not np.isfinite(risk) or risk < 0 for _, risk in exposures):
+                return False, 'INVALID_POSITION_RISK'
+            capacity = current_equity * config.MAX_PORTFOLIO_RISK_PCT
+            if sum(risk for _, risk in exposures) + new_risk > capacity + 1e-8:
+                return False, 'PORTFOLIO_RISK_CAP'
+            sector_risk = sum(risk for pos, risk in exposures
+                              if self.sector_map.get(pos.ticker, 'OTHER') == sector)
+            if sector_risk + new_risk > capacity * self.max_sector_exposure + 1e-8:
+                return False, 'SECTOR_RISK_CAP'
+            cluster_risk = sum(risk for pos, risk in exposures
+                               if self._compute_pairwise_correlation(ticker, pos.ticker, as_of=timestamp)
+                               >= CORRELATION_THRESHOLD)
+            if cluster_risk + new_risk > capacity * MAX_CLUSTER_EXPOSURE_PCT + 1e-8:
+                return False, 'CORRELATION_RISK_CAP'
+            return True, 'APPROVED'
 
         # 2. Correlation Cluster (Returns-Based with Sector Fallback)
         is_cluster_ok, cluster_reason = self.check_correlation_cluster(

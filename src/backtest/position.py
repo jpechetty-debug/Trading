@@ -7,7 +7,9 @@ Position V7.0 — Trade lifecycle management with:
   - V7.0 Structural Exits: RS deterioration, Structure break, Vol collapse
 """
 import src.config as config
+import math
 from src.logger import get_logger
+from src.utils.market_time import is_flatten_time
 
 log = get_logger(__name__)
 
@@ -36,10 +38,27 @@ class Position:
         self.bars_held = 0
 
     def _close(self, price, reason, timestamp):
+        if not self.open:
+            return
+        if not math.isfinite(price) or price <= 0:
+            raise ValueError('Exit price must be finite and positive')
         self.exit_price = price
         self.exit_reason = reason
         self.exit_time = timestamp
         self.open = False
+
+    def update_open(self, price, timestamp):
+        """Process opening gaps using only the opening quote, before new entries."""
+        if not self.open:
+            return
+        if not math.isfinite(price) or price <= 0:
+            raise ValueError('Opening price must be finite and positive')
+        if ((self.direction == 'LONG' and price <= self.stop)
+                or (self.direction == 'SHORT' and price >= self.stop)):
+            self._close(price, 'STOP_GAP' if price != self.stop else 'STOP', timestamp)
+        elif ((self.direction == 'LONG' and price >= self.target)
+              or (self.direction == 'SHORT' and price <= self.target)):
+            self._close(price, 'TARGET_GAP' if price != self.target else 'TARGET', timestamp)
 
     def _check_trailing_stop(self, current_price):
         if self.direction == "LONG":
@@ -59,10 +78,8 @@ class Position:
 
     def _is_eod_flatten_time(self, timestamp):
         try:
-            return (timestamp.hour > config.EOD_FLATTEN_HOUR or
-                    (timestamp.hour == config.EOD_FLATTEN_HOUR and
-                     timestamp.minute >= config.EOD_FLATTEN_MINUTE))
-        except AttributeError:
+            return is_flatten_time(timestamp)
+        except (AttributeError, TypeError, ValueError):
             return False
 
     def _check_structural_exit(self, bar):
@@ -97,10 +114,11 @@ class Position:
         low = bar['Low']
         close = bar['Close']
 
+        self.update_open(open_price, current_time)
+        if not self.open:
+            return
+
         if self.direction == "LONG":
-            if open_price < self.stop:
-                self._close(open_price, "STOP_GAP", current_time)
-                return
             if low <= self.stop:
                 self._close(self.stop, "STOP", current_time)
                 return
@@ -109,9 +127,6 @@ class Position:
                 return
             self._check_trailing_stop(high)
         else:
-            if open_price > self.stop:
-                self._close(open_price, "STOP_GAP", current_time)
-                return
             if high >= self.stop:
                 self._close(self.stop, "STOP", current_time)
                 return
@@ -127,13 +142,11 @@ class Position:
             return
 
         if self._is_eod_flatten_time(current_time):
-            flatten_price = round((high + low) / 2, 2)
-            self._close(flatten_price, "EOD_FLATTEN", current_time)
+            self._close(close, "EOD_FLATTEN", current_time)
             return
 
         if self.bars_held >= config.MAX_HOLD_BARS:
-            stale_price = round((high + low) / 2, 2)
-            self._close(stale_price, "MAX_HOLD", current_time)
+            self._close(close, "MAX_HOLD", current_time)
             return
 
     def calculate_net_pnl(self, cost_model):
@@ -141,7 +154,8 @@ class Position:
         diff = (self.exit_price - self.entry) if self.direction == "LONG" else (self.entry - self.exit_price)
         gross = diff * self.shares
         adv = self.features.get('vol_ma_20', 0)
-        friction = cost_model.round_trip_cost(self.entry, self.exit_price, self.shares, adv=adv)
+        friction = cost_model.round_trip_cost(self.entry, self.exit_price, self.shares,
+                                             adv=adv, direction=self.direction)
         return gross - friction
 
     def calculate_net_r(self, cost_model):

@@ -9,6 +9,8 @@ from src.data.universe import NIFTY_200
 import src.config as config
 from src.data.db import get_db
 from src.regime import RegimeDetector
+from src.data.live_validation import completed_bars
+from src.utils.market_time import market_timestamp, market_index, is_entry_time
 
 log = get_logger(__name__)
 
@@ -21,6 +23,7 @@ class Scanner:
         self.brain = BrainAV5()
         self.exec_model = ExecutionModel()
         self.regime_detector = RegimeDetector()
+        self.last_scan_status = 'NOT_RUN'
 
     def fetch_market_context(self):
         """
@@ -28,7 +31,7 @@ class Scanner:
         """
         log.info("Fetching Market Context (^NSEI)...")
         try:
-            # Use 1y period for technicals (EMA_200) and stability
+            # Use one year for daily regime context.
             nifty_df = yf.download("^NSEI", period="1y", interval="1d", progress=False, threads=False)
             
             if nifty_df.empty:
@@ -43,7 +46,13 @@ class Scanner:
                 log.critical("Could not fetch Nifty data. RS Scoring will be disabled.")
                 return None, "Neutral"
 
-            nifty_df = self.brain.calculate_technicals(nifty_df)
+            # Index volume is often zero. Its regime needs only closes, not
+            # VWAP/stock liquidity indicators (which erase a zero-volume index).
+            nifty_df = nifty_df.copy()
+            nifty_df.index = market_index(nifty_df.index)
+            now = market_timestamp(pd.Timestamp.now(tz='Asia/Kolkata'))
+            if now.time() < pd.Timestamp('15:30').time():
+                nifty_df = nifty_df.loc[nifty_df.index.normalize() < now.normalize()]
             
             if nifty_df.empty:
                 log.error("Nifty data empty after technical processing.")
@@ -86,7 +95,7 @@ class Scanner:
             if nifty_intraday.empty:
                 log.warning("Intraday Nifty fetch failed; RS scoring will default to 0.")
                 return None
-            return self.brain.calculate_technicals(nifty_intraday)
+            return nifty_intraday
         except Exception as e:
             log.error("Intraday Nifty fetch error: %s", e)
             return None
@@ -113,108 +122,73 @@ class Scanner:
             log.error("Bulk Download Failed: %s", e)
             return None
 
-    def scan_market(self):
-        """
-        Main V6.2 Scan Loop (Bulk Optimized)
-        """
-        start_time = time.time()
-        results = []
-        
-        # 1. Get Context (daily Nifty — used for the Bullish/Bearish regime label)
-        nifty_df, market_regime = self.fetch_market_context()
-
-        # 1b. Get a 5-min-resolution Nifty series for RS scoring, so it can
-        # actually be joined against the 5-min stock bars below.
-        nifty_rs_df = self.fetch_nifty_intraday()
-
-        # 2. Bulk Fetch Data
-        bulk_data = self.fetch_bulk_data(ALL_TICKERS)
-        
-        if bulk_data is None or bulk_data.empty:
-            log.warning("No data fetched. Aborting scan.")
+    def scan_market(self, now=None):
+        """Scan only the latest completed, aligned intraday session bar."""
+        now = market_timestamp(pd.Timestamp.now(tz='Asia/Kolkata') if now is None else now)
+        if not is_entry_time(now):
+            self.last_scan_status = 'OUTSIDE_ENTRY_SESSION'
             return []
-
-        log.debug("Bulk Data Columns: %s", bulk_data.columns[:5])
-        log.debug("Bulk Data Head:\n%s", bulk_data.head())
-
-        # 3. Iterate and Analyze
-        log.info("Analyzing %d tickers...", len(ALL_TICKERS))
-        
+        try:
+            nifty = completed_bars(self.fetch_nifty_intraday(), now)
+        except (ValueError, TypeError) as exc:
+            self.last_scan_status = f'BENCHMARK_UNAVAILABLE: {exc}'
+            log.warning(self.last_scan_status)
+            return []
+        bulk = self.fetch_bulk_data(ALL_TICKERS)
+        if bulk is None or bulk.empty:
+            self.last_scan_status = 'UNIVERSE_UNAVAILABLE'
+            return []
+        as_of = nifty.index[-1]
+        prepared = {}
         for ticker in ALL_TICKERS:
             try:
-                # Extract Ticker Slice
-                if isinstance(bulk_data.columns, pd.MultiIndex):
-                    # Check if ticker is in columns (level 0)
-                    if ticker not in bulk_data.columns.get_level_values(0):
-                        log.debug("Ticker %s not in bulk data", ticker)
+                if isinstance(bulk.columns, pd.MultiIndex):
+                    if ticker not in bulk.columns.get_level_values(0):
                         continue
-                    stock_df = bulk_data[ticker].copy()
+                    raw = bulk[ticker]
+                elif len(ALL_TICKERS) == 1:
+                    raw = bulk
                 else:
-                    if len(ALL_TICKERS) == 1:
-                        stock_df = bulk_data.copy()
-                    else:
-                        continue
-                
-                # Basic Validation
-                stock_df.dropna(inplace=True)
-                if len(stock_df) < 50: 
-                    log.debug("Skipping %s: Not enough data (%d)", ticker, len(stock_df))
                     continue
-                
-                log.debug("Analyzing %s with %d rows...", ticker, len(stock_df))
-                
-                # 4. Analyze Slice (Pure Logic)
-                # Use the 5-min Nifty series for RS (timeframe-matched to
-                # stock_df); market_regime (the label) still comes from the
-                # daily context fetched above.
-                result = self.brain.analyze_slice(ticker, stock_df, nifty_rs_df, market_regime)
-                
-                if result:
-                    # 5. Filter: Kill Score check
-                    if result['kill_score'] >= config.KILL_SCORE_THRESHOLD:
-                        # 6. Apply Execution Model (Pass full metadata for Structure Targets)
-                        orders = self.exec_model.generate_orders(result)
-
-                        # Same gate the backtest engine applies: reject
-                        # trades with poor R:R or degenerate/zero sizing.
-                        # Previously this check was missing here, so the
-                        # live scanner could surface setups that the
-                        # backtester would never have taken.
-                        if not orders['valid_rr']:
-                            log.debug("Rejected %s: invalid_rr (RR=%.2f, shares=%d)",
-                                      ticker, orders['risk_reward'], orders['shares'])
-                            continue
-
-                        result.update(orders)
-                        
-                        # Add Entry/Stop/Target to result for unified interface
-                        result['entry'] = orders['entry']
-                        result['stop'] = orders['stop']
-                        result['target'] = orders['target']
-                        result['shares'] = orders['shares']
-                        
-                        # LOGGING: Persist Signal to DB
-                        get_db().log_trade(
-                            ticker=ticker,
-                            action=result['direction'],
-                            price=result['close'],
-                            shares=orders['shares'],
-                            status="SIGNAL"
-                        )
-                        
-                        results.append(result)
-                        
-            except KeyError:
-                log.debug("KeyError extracting %s from bulk data", ticker)
-            except Exception as e:
-                log.warning("Analysis failed for %s: %s", ticker, e)
-
-        # 7. Sort by Kill Score
-        results.sort(key=lambda x: x['kill_score'], reverse=True)
-        
-        log.info("Scan Complete in %.2fs", time.time() - start_time)
-        log.info("Found %d High-Conviction Setups", len(results))
-        
+                raw = completed_bars(raw, now, min_bars=self.brain.MIN_RAW_BARS)
+                frame = self.brain.calculate_technicals(raw)
+                if len(frame) >= 50 and frame.index[-1] == as_of:
+                    prepared[ticker] = frame
+            except (ValueError, TypeError, KeyError) as exc:
+                log.warning('Rejected %s market data: %s', ticker, exc)
+        if not prepared or len(prepared) / len(set(ALL_TICKERS)) < config.MIN_BREADTH_COVERAGE:
+            self.last_scan_status = 'INSUFFICIENT_BREADTH_COVERAGE'
+            return []
+        # Both live scanners and the backtest use intraday EMA regime + breadth.
+        self.regime_detector.calculate_emas(nifty)
+        row = nifty.iloc[-1]
+        breadth = self.regime_detector.get_breadth_score(prepared, as_of)
+        state = self.regime_detector.detect(
+            row['Close'], row[f'EMA_{self.regime_detector.primary_period}'],
+            row[f'EMA_{self.regime_detector.gatekeeper_period}'], breadth_score=breadth)
+        results = []
+        for ticker, frame in prepared.items():
+            try:
+                result = self.brain.analyze_slice(ticker, frame, nifty, state['regime'], technicals_ready=True)
+                if not result or result['kill_score'] < config.KILL_SCORE_THRESHOLD:
+                    continue
+                authorized = ((result['direction'] == 'LONG' and state['longs_authorized'])
+                              or (result['direction'] == 'SHORT' and state['shorts_authorized']))
+                if not authorized:
+                    continue
+                orders = self.exec_model.generate_orders(result)
+                if not orders['valid_rr'] or orders['shares'] <= 0:
+                    continue
+                result = dict(result, **orders)
+                result['breadth_score'] = breadth
+                result['breadth_coverage'] = len(prepared) / len(set(ALL_TICKERS))
+                get_db().log_trade(ticker=ticker, action=result['direction'], price=result['close'],
+                                   shares=orders['shares'], status='SIGNAL')
+                results.append(result)
+            except Exception:
+                log.exception('Analysis failed for %s', ticker)
+        self.last_scan_status = 'OK'
+        results.sort(key=lambda r: (-r['kill_score'], r['ticker']))
         return results
 
 # --- Test Block ---

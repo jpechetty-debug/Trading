@@ -1,8 +1,39 @@
 import datetime
 import pytz
 import time
+import pandas as pd
+import src.config as config
 
 IST = pytz.timezone('Asia/Kolkata')
+
+
+def market_timestamp(value):
+    """Naive inputs denote IST; aware inputs retain their instant in IST."""
+    timestamp = pd.Timestamp(value)
+    if pd.isna(timestamp):
+        raise ValueError('A valid market timestamp is required')
+    if timestamp.tzinfo is not None:
+        timestamp = timestamp.tz_convert("Asia/Kolkata").tz_localize(None)
+    return timestamp
+
+
+def market_index(values):
+    index = pd.DatetimeIndex(pd.to_datetime(values))
+    if index.tz is not None:
+        index = index.tz_convert("Asia/Kolkata").tz_localize(None)
+    return index
+
+
+def is_flatten_time(value):
+    timestamp = market_timestamp(value)
+    return (timestamp.hour, timestamp.minute) >= (config.EOD_FLATTEN_HOUR, config.EOD_FLATTEN_MINUTE)
+
+
+def is_entry_time(value):
+    timestamp = market_timestamp(value)
+    return (timestamp.weekday() < 5
+            and (timestamp.hour, timestamp.minute) >= (9, 15)
+            and not is_flatten_time(timestamp))
 
 class MarketClock:
     def __init__(self):
@@ -19,7 +50,7 @@ class MarketClock:
         current_time = now.time()
         if current_time < self.open_time:
             return False, "PRE_MARKET"
-        if current_time > self.close_time:
+        if current_time >= self.close_time:
             return False, "POST_MARKET"
             
         return True, "MARKET_OPEN"
@@ -31,22 +62,10 @@ class MarketClock:
         """
         now = datetime.datetime.now(IST)
         
-        # Calculate next interval mark
-        next_minute = (now.minute // interval_minutes + 1) * interval_minutes
-        
-        # Handle hour rollover
-        target_hour = now.hour
-        if next_minute >= 60:
-            next_minute = 0
-            target_hour += 1
-            if target_hour >= 24:
-                target_hour = 0
-
-        target_time = now.replace(hour=target_hour, minute=next_minute, second=5, microsecond=0)
-        
-        # If target is in the past (e.g. just crossed it), add interval
-        if target_time <= now:
-            target_time += datetime.timedelta(minutes=interval_minutes)
+        if not isinstance(interval_minutes, int) or interval_minutes <= 0 or 60 % interval_minutes:
+            raise ValueError('Candle interval must be a positive divisor of 60 minutes')
+        target_time = now.replace(second=0, microsecond=0) + datetime.timedelta(
+            minutes=interval_minutes - now.minute % interval_minutes, seconds=5)
 
         seconds_to_wait = (target_time - now).total_seconds()
         

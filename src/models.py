@@ -18,7 +18,7 @@ class Features:
     rs_slope: float = 0.0
     atr_val: float = 0.0
     vol_ratio: float = 0.0
-    vol_ma_20: float = 0.0       # ADV for non-linear slippage model
+    vol_ma_20: float = 0.0       # 20-bar mean five-minute volume; impact-model input
     dist_ema: float = 0.0
     candle_range_atr: float = 0.0
     resistance: float = 0.0

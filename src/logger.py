@@ -19,10 +19,19 @@ _EMOJI_MAP = {
 class EmojiFormatter(logging.Formatter):
     """Custom formatter that preserves the emoji-style output the system uses."""
 
+    def __init__(self, *args, stream_encoding=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.stream_encoding = stream_encoding
+
     def format(self, record):
         emoji = _EMOJI_MAP.get(record.levelname, "")
         record.emoji = emoji
-        return super().format(record)
+        message = super().format(record)
+        if self.stream_encoding:
+            # Windows pipes may use cp1252: emoji/currency must not cause a
+            # traceback or lose the actual diagnostic message.
+            message = message.encode(self.stream_encoding, errors='backslashreplace').decode(self.stream_encoding)
+        return message
 
 
 def get_logger(name: str, level: int = logging.INFO) -> logging.Logger:
@@ -50,6 +59,7 @@ def get_logger(name: str, level: int = logging.INFO) -> logging.Logger:
     fmt = EmojiFormatter(
         "%(emoji)s [%(name)s] %(message)s",
         datefmt="%H:%M:%S",
+        stream_encoding=getattr(handler.stream, 'encoding', None),
     )
     handler.setFormatter(fmt)
     logger.addHandler(handler)

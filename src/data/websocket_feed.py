@@ -11,6 +11,10 @@ from typing import Callable, Dict, List, Optional
 from datetime import datetime
 import pandas as pd
 import numpy as np
+from src.utils.market_time import market_timestamp
+from src.logger import get_logger
+
+log = get_logger(__name__)
 
 
 @dataclass
@@ -40,21 +44,28 @@ class CandleBuilder:
     Emits a candle when the interval closes.
     """
     
-    def __init__(self, interval_seconds: int = 300):
+    def __init__(self, interval_seconds: int = 300, max_candles: int = 500):
+        if not isinstance(interval_seconds, int) or interval_seconds <= 0:
+            raise ValueError('interval_seconds must be a positive integer')
+        if not isinstance(max_candles, int) or max_candles < 250:
+            raise ValueError('max_candles must retain at least 250 bars for indicators')
         self.interval = interval_seconds
+        self.max_candles = max_candles
         self.candles: Dict[str, List[Candle]] = {}  # symbol -> list of completed candles
         self.current: Dict[str, dict] = {}  # symbol -> current building candle
         self.on_candle_close: Optional[Callable[[str, Candle], None]] = None
     
     def _get_candle_start(self, ts: datetime) -> datetime:
         """Round timestamp down to interval boundary."""
-        epoch = ts.timestamp()
-        boundary = (epoch // self.interval) * self.interval
-        return datetime.fromtimestamp(boundary)
+        return market_timestamp(ts).floor(f'{self.interval}s')
     
     def process_tick(self, tick: Tick):
         """Process incoming tick and build candles."""
-        candle_start = self._get_candle_start(tick.timestamp)
+        if not np.isfinite(tick.price) or tick.price <= 0 or not np.isfinite(tick.volume) or tick.volume < 0:
+            log.warning('Discarded invalid tick for %s', tick.symbol)
+            return False
+        tick_time = market_timestamp(tick.timestamp)
+        candle_start = self._get_candle_start(tick_time)
         symbol = tick.symbol
         
         if symbol not in self.current:
@@ -64,12 +75,16 @@ class CandleBuilder:
                 'high': tick.price,
                 'low': tick.price,
                 'close': tick.price,
-                'volume': tick.volume
+                'volume': tick.volume,
+                'last_timestamp': tick_time,
             }
             self.candles[symbol] = []
             return
         
         curr = self.current[symbol]
+        if tick_time < curr['last_timestamp']:
+            log.warning('Discarded out-of-order tick for %s', symbol)
+            return False
         
         # Check if we've moved to a new candle period
         if candle_start > curr['start']:
@@ -84,10 +99,7 @@ class CandleBuilder:
                 timestamp=curr['start']
             )
             self.candles[symbol].append(completed)
-            
-            # Callback
-            if self.on_candle_close:
-                self.on_candle_close(symbol, completed)
+            del self.candles[symbol][:-self.max_candles]
             
             # Start new candle
             self.current[symbol] = {
@@ -96,14 +108,23 @@ class CandleBuilder:
                 'high': tick.price,
                 'low': tick.price,
                 'close': tick.price,
-                'volume': tick.volume
+                'volume': tick.volume,
+                'last_timestamp': tick_time,
             }
+            # Commit the new state before invoking downstream code. A failed
+            # analyzer must not cause this completed candle to be emitted twice.
+            if self.on_candle_close:
+                try:
+                    self.on_candle_close(symbol, completed)
+                except Exception:
+                    log.exception('Candle callback failed for %s', symbol)
         else:
             # Update current candle
             curr['high'] = max(curr['high'], tick.price)
             curr['low'] = min(curr['low'], tick.price)
             curr['close'] = tick.price
             curr['volume'] += tick.volume
+            curr['last_timestamp'] = tick_time
     
     def get_dataframe(self, symbol: str, min_candles: int = 50) -> Optional[pd.DataFrame]:
         """Convert completed candles to DataFrame for analysis."""

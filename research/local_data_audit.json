@@ -1,0 +1,371 @@
+{
+  "files_checked": 20,
+  "compatible_files": 0,
+  "notes": [
+    "Structural compatibility does not certify price adjustments, exchange calendars, or provenance.",
+    "This strategy also requires timestamp-aligned ^NSEI five-minute benchmark data and indicator warmup.",
+    "Daily bars and absent volume are never synthesized into five-minute OHLCV."
+  ],
+  "files": [
+    {
+      "path": "D:\\Codex\\tori-scanner\\data\\multibagger_top20\\runs\\20261025T023545567019Z-35499089cb15\\inputs\\CASTROLIND.NS_1d.csv",
+      "compatible_5m_ohlcv": false,
+      "sha256": "b4a487df938510c0932ba9e465152fb4f9bb840d6080c9f928892b76b336685d",
+      "rows": 1245,
+      "columns": [
+        "Date",
+        "Open",
+        "High",
+        "Low",
+        "Close"
+      ],
+      "start": "2021-10-07 00:00:00",
+      "end": "2026-10-23 00:00:00",
+      "duplicate_timestamps": 0,
+      "median_interval_seconds": 86400.0,
+      "error": "Missing OHLCV columns: Volume"
+    },
+    {
+      "path": "D:\\Codex\\tori-scanner\\data\\multibagger_top20\\runs\\20261025T023545567019Z-35499089cb15\\inputs\\CHENNPETRO.NS_1d.csv",
+      "compatible_5m_ohlcv": false,
+      "sha256": "8e962f471573cfd10add167d4fe3faa93913e90183f0c1c9fe51ec2654ecf079",
+      "rows": 1245,
+      "columns": [
+        "Date",
+        "Open",
+        "High",
+        "Low",
+        "Close"
+      ],
+      "start": "2021-10-07 00:00:00",
+      "end": "2026-10-23 00:00:00",
+      "duplicate_timestamps": 0,
+      "median_interval_seconds": 86400.0,
+      "error": "Missing OHLCV columns: Volume"
+    },
+    {
+      "path": "D:\\Codex\\tori-scanner\\data\\multibagger_top20\\runs\\20261025T023545567019Z-35499089cb15\\inputs\\COFORGE.NS_1d.csv",
+      "compatible_5m_ohlcv": false,
+      "sha256": "e89ed5efce6ac1a4a83e9728c203908ab95333843c87eec0b0928ad6fda317e5",
+      "rows": 1245,
+      "columns": [
+        "Date",
+        "Open",
+        "High",
+        "Low",
+        "Close"
+      ],
+      "start": "2021-10-07 00:00:00",
+      "end": "2026-10-23 00:00:00",
+      "duplicate_timestamps": 0,
+      "median_interval_seconds": 86400.0,
+      "error": "Missing OHLCV columns: Volume"
+    },
+    {
+      "path": "D:\\Codex\\tori-scanner\\data\\multibagger_top20\\runs\\20261025T023545567019Z-35499089cb15\\inputs\\GESHIP.NS_1d.csv",
+      "compatible_5m_ohlcv": false,
+      "sha256": "adacfb46221d37297eadce18037f7029b3b4761de328708053ca77ab28742478",
+      "rows": 1244,
+      "columns": [
+        "Date",
+        "Open",
+        "High",
+        "Low",
+        "Close"
+      ],
+      "start": "2021-10-07 00:00:00",
+      "end": "2026-10-22 00:00:00",
+      "duplicate_timestamps": 0,
+      "median_interval_seconds": 86400.0,
+      "error": "Missing OHLCV columns: Volume"
+    },
+    {
+      "path": "D:\\Codex\\tori-scanner\\data\\multibagger_top20\\runs\\20261025T023545567019Z-35499089cb15\\inputs\\GPPL.NS_1d.csv",
+      "compatible_5m_ohlcv": false,
+      "sha256": "5ae8d0162bf7ea9087d2f2e1b3de7d96ec9d25ba766f94245b233cc0fc405b79",
+      "rows": 1244,
+      "columns": [
+        "Date",
+        "Open",
+        "High",
+        "Low",
+        "Close"
+      ],
+      "start": "2021-10-07 00:00:00",
+      "end": "2026-10-22 00:00:00",
+      "duplicate_timestamps": 0,
+      "median_interval_seconds": 86400.0,
+      "error": "Missing OHLCV columns: Volume"
+    },
+    {
+      "path": "D:\\Codex\\tori-scanner\\data\\multibagger_top20\\runs\\20261025T023545567019Z-35499089cb15\\inputs\\HCLTECH.NS_1d.csv",
+      "compatible_5m_ohlcv": false,
+      "sha256": "f7b9aa4cc2f098539734c28f482bf52c8eb8de0b4fc98df063d19a60237630ce",
+      "rows": 1245,
+      "columns": [
+        "Date",
+        "Open",
+        "High",
+        "Low",
+        "Close"
+      ],
+      "start": "2021-10-07 00:00:00",
+      "end": "2026-10-23 00:00:00",
+      "duplicate_timestamps": 0,
+      "median_interval_seconds": 86400.0,
+      "error": "Missing OHLCV columns: Volume"
+    },
+    {
+      "path": "D:\\Codex\\tori-scanner\\data\\multibagger_top20\\runs\\20261025T023545567019Z-35499089cb15\\inputs\\HINDCOPPER.NS_1d.csv",
+      "compatible_5m_ohlcv": false,
+      "sha256": "7168a6a431319cb103b3f1ac4a632f82d7e10fb5d754fcd2eb97d0ba3418a69b",
+      "rows": 1245,
+      "columns": [
+        "Date",
+        "Open",
+        "High",
+        "Low",
+        "Close"
+      ],
+      "start": "2021-10-07 00:00:00",
+      "end": "2026-10-23 00:00:00",
+      "duplicate_timestamps": 0,
+      "median_interval_seconds": 86400.0,
+      "error": "Missing OHLCV columns: Volume"
+    },
+    {
+      "path": "D:\\Codex\\tori-scanner\\data\\multibagger_top20\\runs\\20261025T023545567019Z-35499089cb15\\inputs\\HINDZINC.NS_1d.csv",
+      "compatible_5m_ohlcv": false,
+      "sha256": "8d8574c7a02b5ab11c9f9ef701319c3b6e72f1c64a59d184293314d10abc0ad0",
+      "rows": 1245,
+      "columns": [
+        "Date",
+        "Open",
+        "High",
+        "Low",
+        "Close"
+      ],
+      "start": "2021-10-07 00:00:00",
+      "end": "2026-10-23 00:00:00",
+      "duplicate_timestamps": 0,
+      "median_interval_seconds": 86400.0,
+      "error": "Missing OHLCV columns: Volume"
+    },
+    {
+      "path": "D:\\Codex\\tori-scanner\\data\\multibagger_top20\\runs\\20261025T023545567019Z-35499089cb15\\inputs\\INFY.NS_1d.csv",
+      "compatible_5m_ohlcv": false,
+      "sha256": "ee942eda175e3a7bdf76ed445078a2af4514c9f5ba2d90f90d75fe5a4d69157f",
+      "rows": 1245,
+      "columns": [
+        "Date",
+        "Open",
+        "High",
+        "Low",
+        "Close"
+      ],
+      "start": "2021-10-07 00:00:00",
+      "end": "2026-10-23 00:00:00",
+      "duplicate_timestamps": 0,
+      "median_interval_seconds": 86400.0,
+      "error": "Missing OHLCV columns: Volume"
+    },
+    {
+      "path": "D:\\Codex\\tori-scanner\\data\\multibagger_top20\\runs\\20261025T023545567019Z-35499089cb15\\inputs\\LUPIN.NS_1d.csv",
+      "compatible_5m_ohlcv": false,
+      "sha256": "2765bef56bf9da4c0c6ac13bbfc10c29fc7e3d2c476e9fc32a8702929c67a061",
+      "rows": 1245,
+      "columns": [
+        "Date",
+        "Open",
+        "High",
+        "Low",
+        "Close"
+      ],
+      "start": "2021-10-07 00:00:00",
+      "end": "2026-10-23 00:00:00",
+      "duplicate_timestamps": 0,
+      "median_interval_seconds": 86400.0,
+      "error": "Missing OHLCV columns: Volume"
+    },
+    {
+      "path": "D:\\Codex\\tori-scanner\\data\\multibagger_top20\\runs\\20261025T023545567019Z-35499089cb15\\inputs\\MARKSANS.NS_1d.csv",
+      "compatible_5m_ohlcv": false,
+      "sha256": "66a28ada485d2a58d2059cb0526bacafffcd196d05c860cd4012347aba389b5b",
+      "rows": 1244,
+      "columns": [
+        "Date",
+        "Open",
+        "High",
+        "Low",
+        "Close"
+      ],
+      "start": "2021-10-07 00:00:00",
+      "end": "2026-10-22 00:00:00",
+      "duplicate_timestamps": 0,
+      "median_interval_seconds": 86400.0,
+      "error": "Missing OHLCV columns: Volume"
+    },
+    {
+      "path": "D:\\Codex\\tori-scanner\\data\\multibagger_top20\\runs\\20261025T023545567019Z-35499089cb15\\inputs\\MODISONLTD.NS_1d.csv",
+      "compatible_5m_ohlcv": false,
+      "sha256": "a586d667b245f3da31b184a492d470b9a0026541e74bac03b9b10e5e34679dd6",
+      "rows": 1241,
+      "columns": [
+        "Date",
+        "Open",
+        "High",
+        "Low",
+        "Close"
+      ],
+      "start": "2021-10-11 00:00:00",
+      "end": "2026-10-22 00:00:00",
+      "duplicate_timestamps": 0,
+      "median_interval_seconds": 86400.0,
+      "error": "Missing OHLCV columns: Volume"
+    },
+    {
+      "path": "D:\\Codex\\tori-scanner\\data\\multibagger_top20\\runs\\20261025T023545567019Z-35499089cb15\\inputs\\NATIONALUM.NS_1d.csv",
+      "compatible_5m_ohlcv": false,
+      "sha256": "8f052fc4bb563e42c2b67c8a6c6872ad3b6a239d9a2203fa495d249506fea32b",
+      "rows": 1245,
+      "columns": [
+        "Date",
+        "Open",
+        "High",
+        "Low",
+        "Close"
+      ],
+      "start": "2021-10-07 00:00:00",
+      "end": "2026-10-23 00:00:00",
+      "duplicate_timestamps": 0,
+      "median_interval_seconds": 86400.0,
+      "error": "Missing OHLCV columns: Volume"
+    },
+    {
+      "path": "D:\\Codex\\tori-scanner\\data\\multibagger_top20\\runs\\20261025T023545567019Z-35499089cb15\\inputs\\OFSS.NS_1d.csv",
+      "compatible_5m_ohlcv": false,
+      "sha256": "db8c834ba6339d285bae95847018941a8a01ab55230ecbb6733758205c414bcb",
+      "rows": 1245,
+      "columns": [
+        "Date",
+        "Open",
+        "High",
+        "Low",
+        "Close"
+      ],
+      "start": "2021-10-07 00:00:00",
+      "end": "2026-10-23 00:00:00",
+      "duplicate_timestamps": 0,
+      "median_interval_seconds": 86400.0,
+      "error": "Missing OHLCV columns: Volume"
+    },
+    {
+      "path": "D:\\Codex\\tori-scanner\\data\\multibagger_top20\\runs\\20261025T023545567019Z-35499089cb15\\inputs\\PANAMAPET.NS_1d.csv",
+      "compatible_5m_ohlcv": false,
+      "sha256": "382d217a228fb2e1862c434af736941f4402cfaccb904a5fe3271df22b55a3be",
+      "rows": 1245,
+      "columns": [
+        "Date",
+        "Open",
+        "High",
+        "Low",
+        "Close"
+      ],
+      "start": "2021-10-07 00:00:00",
+      "end": "2026-10-23 00:00:00",
+      "duplicate_timestamps": 0,
+      "median_interval_seconds": 86400.0,
+      "error": "Missing OHLCV columns: Volume"
+    },
+    {
+      "path": "D:\\Codex\\tori-scanner\\data\\multibagger_top20\\runs\\20261025T023545567019Z-35499089cb15\\inputs\\PASUPTAC.NS_1d.csv",
+      "compatible_5m_ohlcv": false,
+      "sha256": "895233b3eb7a4d5b23e189084a945e4c58f3d3bec5a66de95e982c5c04a2280d",
+      "rows": 1240,
+      "columns": [
+        "Date",
+        "Open",
+        "High",
+        "Low",
+        "Close"
+      ],
+      "start": "2021-10-12 00:00:00",
+      "end": "2026-10-22 00:00:00",
+      "duplicate_timestamps": 0,
+      "median_interval_seconds": 86400.0,
+      "error": "Missing OHLCV columns: Volume"
+    },
+    {
+      "path": "D:\\Codex\\tori-scanner\\data\\multibagger_top20\\runs\\20261025T023545567019Z-35499089cb15\\inputs\\PREMIERPOL.NS_1d.csv",
+      "compatible_5m_ohlcv": false,
+      "sha256": "0a0515e80a15620d395cbdb12ff43558e3674f94d8ef725b20b86d5243af2798",
+      "rows": 1243,
+      "columns": [
+        "Date",
+        "Open",
+        "High",
+        "Low",
+        "Close"
+      ],
+      "start": "2021-10-11 00:00:00",
+      "end": "2026-10-23 00:00:00",
+      "duplicate_timestamps": 0,
+      "median_interval_seconds": 86400.0,
+      "error": "Missing OHLCV columns: Volume"
+    },
+    {
+      "path": "D:\\Codex\\tori-scanner\\data\\multibagger_top20\\runs\\20261025T023545567019Z-35499089cb15\\inputs\\TBZ.NS_1d.csv",
+      "compatible_5m_ohlcv": false,
+      "sha256": "e463f4461c05b9e42e8fb377008bb93629ff75ba358e04abb4dfd8db7f379357",
+      "rows": 1244,
+      "columns": [
+        "Date",
+        "Open",
+        "High",
+        "Low",
+        "Close"
+      ],
+      "start": "2021-10-07 00:00:00",
+      "end": "2026-10-22 00:00:00",
+      "duplicate_timestamps": 0,
+      "median_interval_seconds": 86400.0,
+      "error": "Missing OHLCV columns: Volume"
+    },
+    {
+      "path": "D:\\Codex\\tori-scanner\\data\\multibagger_top20\\runs\\20261025T023545567019Z-35499089cb15\\inputs\\TECHM.NS_1d.csv",
+      "compatible_5m_ohlcv": false,
+      "sha256": "0c0e3f5538e6ef79665dbca3bf2b9eb6bad49139f6f196ef1573e65acd2251c2",
+      "rows": 1245,
+      "columns": [
+        "Date",
+        "Open",
+        "High",
+        "Low",
+        "Close"
+      ],
+      "start": "2021-10-07 00:00:00",
+      "end": "2026-10-23 00:00:00",
+      "duplicate_timestamps": 0,
+      "median_interval_seconds": 86400.0,
+      "error": "Missing OHLCV columns: Volume"
+    },
+    {
+      "path": "D:\\Codex\\tori-scanner\\data\\multibagger_top20\\runs\\20261025T023545567019Z-35499089cb15\\inputs\\VENUSREM.NS_1d.csv",
+      "compatible_5m_ohlcv": false,
+      "sha256": "9b4aa684614476ebd08eb780b7914a378ed6c50a665451abbd1c2c31e846ebd5",
+      "rows": 835,
+      "columns": [
+        "Date",
+        "Open",
+        "High",
+        "Low",
+        "Close"
+      ],
+      "start": "2023-05-24 00:00:00",
+      "end": "2026-10-22 00:00:00",
+      "duplicate_timestamps": 0,
+      "median_interval_seconds": 86400.0,
+      "error": "Missing OHLCV columns: Volume"
+    }
+  ]
+}

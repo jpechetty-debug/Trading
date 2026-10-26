@@ -16,6 +16,8 @@ class NSECostModel:
         self.slippage_pct = 0.0005 
 
     def calculate_leg_cost(self, price, quantity, side, adv=0):
+        # Historical argument name: callers supply average five-minute volume,
+        # not daily ADV. Impact coefficients remain an uncalibrated assumption.
         turnover = price * quantity
         brokerage = min(20, 0.0003 * turnover)
         
@@ -41,10 +43,12 @@ class NSECostModel:
         
         return brokerage + stt + txn_charges + gst + sebi + stamp_duty + slippage_cost
 
-    def round_trip_cost(self, entry_price, exit_price, quantity=1, adv=0):
+    def round_trip_cost(self, entry_price, exit_price, quantity=1, adv=0, direction="LONG"):
         """
         Calculates total friction for a complete trade cycle.
         """
-        buy_cost = self.calculate_leg_cost(entry_price, quantity, "BUY", adv=adv)
-        sell_cost = self.calculate_leg_cost(exit_price, quantity, "SELL", adv=adv)
-        return buy_cost + sell_cost
+        if direction not in {"LONG", "SHORT"}:
+            raise ValueError(f"Invalid direction: {direction}")
+        entry_side, exit_side = ("BUY", "SELL") if direction == "LONG" else ("SELL", "BUY")
+        return (self.calculate_leg_cost(entry_price, quantity, entry_side, adv=adv)
+                + self.calculate_leg_cost(exit_price, quantity, exit_side, adv=adv))

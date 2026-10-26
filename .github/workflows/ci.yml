@@ -24,7 +24,10 @@ jobs:
       - name: Validate config invariants
         run: python -c "from src.config import validate_config; validate_config(); print('config OK')"
 
-      - name: Run test suite (86 tests, offline)
+      - name: Check installed dependency compatibility
+        run: python -m pip check
+
+      - name: Run test suite (offline)
         run: python -m pytest tests/ -v
 
       # Import-only safety check on the network-dependent sim entry points.

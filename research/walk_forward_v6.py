@@ -39,15 +39,11 @@ class WalkForwardValidator:
             for ticker in self.tickers:
                 # We initialize engine with current_test_start
                 # The engine will use history BEFORE this for warmup
-                engine = BacktestEngine(start_date=current_test_start.strftime("%Y-%m-%d"))
-                
-                # We need to cap the engine's end date (not supported in BacktestEngine.run directly)
-                # But we can pass it via data manipulation or just run and filter
+                engine = BacktestEngine(start_date=current_test_start, end_date=test_end)
                 results_df = engine.run(ticker)
                 
                 if not results_df.empty:
-                    # Filter for trades that EXITED within the test window
-                    oos_trades = results_df[results_df['exit_time'] <= test_end]
+                    oos_trades = results_df
                     if not oos_trades.empty:
                         all_oos_results.append(oos_trades)
                         print(f"   {ticker}: {len(oos_trades)} OOS trades found.")
