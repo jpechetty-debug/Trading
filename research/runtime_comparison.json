@@ -1,0 +1,29 @@
+{
+  "date": "2026-10-26",
+  "purpose": "Offline implementation equivalence and runtime; no market-performance evidence",
+  "workload": {
+    "synthetic": true,
+    "tickers": 8,
+    "sessions": 5,
+    "bars_per_session": 75,
+    "profiled": false
+  },
+  "environment": {
+    "python": "3.12.10",
+    "pandas": "2.3.3",
+    "numpy": "2.2.6",
+    "platform": "Windows"
+  },
+  "before_seconds": 12.497385099995881,
+  "after_seconds": 4.637020800000755,
+  "speedup": 2.6951324220917545,
+  "trades": 15,
+  "identical_trades": true,
+  "identical_events": true,
+  "trade_sha256": "2942399f1ed076c693388a4d3892a934388740aa1c43d8f922ec46185add9f20",
+  "event_count": 404,
+  "events_sha256": "d7365ea096bee1d6fbba4e976291745e71f77ecae6b3732c2785237a3afe99d5",
+  "sector_map_sha256": "73cfc2abd0750422d95909620a89aa5d83c724fea748672e520e31db5f846a7e",
+  "command": "python scripts/benchmark_backtest.py --days 5 --tickers 8 --output research/data/runtime.json",
+  "limitations": "Single local timing pair. Both use the expanded sector map and identical strategy settings. Does not establish full-universe scalability or profitability."
+}

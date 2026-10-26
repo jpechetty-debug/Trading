@@ -1,24 +1,502 @@
 Symbol,Sector
-RELIANCE.NS,ENERGY
-TCS.NS,IT
-HDFCBANK.NS,BANK
-ICICIBANK.NS,BANK
-INFY.NS,IT
-SBIN.NS,BANK
-BHARTIARTL.NS,TELECOM
-ITC.NS,FMCG
-KOTAKBANK.NS,BANK
-LT.NS,CONSTRUCTION
-AXISBANK.NS,BANK
-BAJFINANCE.NS,FINANCE
-MARUTI.NS,AUTO
-ASIANPAINT.NS,CONSUMER
-HCLTECH.NS,IT
-TITAN.NS,CONSUMER
-ONGC.NS,ENERGY
-NTPC.NS,ENERGY
-TATAPOWER.NS,ENERGY
-WIPRO.NS,IT
-TATAMOTORS.NS,AUTO
-M&M.NS,AUTO
-ADANIENT.NS,ENERGY
+360ONE.NS,Financial Services
+AADHARHFC.NS,Financial Services
+AARTIIND.NS,Chemicals
+AAVAS.NS,Financial Services
+ABB.NS,Capital Goods
+ABBOTINDIA.NS,Healthcare
+ABCAPITAL.NS,Financial Services
+ABDL.NS,Fast Moving Consumer Goods
+ABREL.NS,Realty
+ABSLAMC.NS,Financial Services
+ACC.NS,Construction Materials
+ACE.NS,Capital Goods
+ACMESOLAR.NS,Power
+ACUTAAS.NS,Healthcare
+ADANIENSOL.NS,Power
+ADANIENT.NS,Metals & Mining
+ADANIGREEN.NS,Power
+ADANIPORTS.NS,Services
+ADANIPOWER.NS,Power
+AEGISLOG.NS,Oil Gas & Consumable Fuels
+AEGISVOPAK.NS,Oil Gas & Consumable Fuels
+AETHER.NS,Chemicals
+AFCONS.NS,Construction
+AFFLE.NS,Information Technology
+AIAENG.NS,Capital Goods
+AIIL.NS,Financial Services
+AJANTPHARM.NS,Healthcare
+ALKEM.NS,Healthcare
+AMBER.NS,Consumer Durables
+AMBUJACEM.NS,Construction Materials
+ANANDRATHI.NS,Financial Services
+ANANTRAJ.NS,Realty
+ANGELONE.NS,Financial Services
+ANTHEM.NS,Healthcare
+ANURAS.NS,Chemicals
+APARINDS.NS,Capital Goods
+APLAPOLLO.NS,Capital Goods
+APOLLOHOSP.NS,Healthcare
+APOLLOTYRE.NS,Automobile and Auto Components
+APTUS.NS,Financial Services
+ARE&M.NS,Automobile and Auto Components
+ASAHIINDIA.NS,Automobile and Auto Components
+ASHOKLEY.NS,Capital Goods
+ASIANPAINT.NS,Consumer Durables
+ASTERDM.NS,Healthcare
+ASTRAL.NS,Capital Goods
+ATGL.NS,Oil Gas & Consumable Fuels
+ATHERENERG.NS,Automobile and Auto Components
+ATUL.NS,Chemicals
+AUBANK.NS,Financial Services
+AUROPHARMA.NS,Healthcare
+AVANTIFEED.NS,Fast Moving Consumer Goods
+AWL.NS,Fast Moving Consumer Goods
+AXISBANK.NS,Financial Services
+AZAD.NS,Capital Goods
+BAGMANE.NS,Realty
+BAJAJ-AUTO.NS,Automobile and Auto Components
+BAJAJFINSV.NS,Financial Services
+BAJAJHFL.NS,Financial Services
+BAJAJHLDNG.NS,Financial Services
+BAJFINANCE.NS,Financial Services
+BALKRISIND.NS,Automobile and Auto Components
+BALRAMCHIN.NS,Fast Moving Consumer Goods
+BANDHANBNK.NS,Financial Services
+BANKBARODA.NS,Financial Services
+BANKINDIA.NS,Financial Services
+BATAINDIA.NS,Consumer Durables
+BBOX.NS,Information Technology
+BDL.NS,Capital Goods
+BEL.NS,Capital Goods
+BELRISE.NS,Automobile and Auto Components
+BEML.NS,Capital Goods
+BERGEPAINT.NS,Consumer Durables
+BHARATCOAL.NS,Oil Gas & Consumable Fuels
+BHARATFORG.NS,Automobile and Auto Components
+BHARTIARTL.NS,Telecommunication
+BHARTIHEXA.NS,Telecommunication
+BHEL.NS,Capital Goods
+BIOCON.NS,Healthcare
+BIRET.NS,Realty
+BLS.NS,Consumer Services
+BLUESTARCO.NS,Consumer Durables
+BOSCHLTD.NS,Automobile and Auto Components
+BPCL.NS,Oil Gas & Consumable Fuels
+BRIGADE.NS,Realty
+BRITANNIA.NS,Fast Moving Consumer Goods
+BSE.NS,Financial Services
+BSOFT.NS,Information Technology
+CAMS.NS,Financial Services
+CANBK.NS,Financial Services
+CANFINHOME.NS,Financial Services
+CANHLIFE.NS,Financial Services
+CAPLIPOINT.NS,Healthcare
+CARBORUNIV.NS,Capital Goods
+CARTRADE.NS,Consumer Services
+CASTROLIND.NS,Oil Gas & Consumable Fuels
+CCL.NS,Fast Moving Consumer Goods
+CDSL.NS,Financial Services
+CEATLTD.NS,Automobile and Auto Components
+CEMPRO.NS,Construction
+CENTRALBK.NS,Financial Services
+CESC.NS,Power
+CGCL.NS,Financial Services
+CGPOWER.NS,Capital Goods
+CHAMBLFERT.NS,Chemicals
+CHENNPETRO.NS,Oil Gas & Consumable Fuels
+CHOICEIN.NS,Financial Services
+CHOLAFIN.NS,Financial Services
+CHOLAHLDNG.NS,Financial Services
+CIEINDIA.NS,Automobile and Auto Components
+CIPLA.NS,Healthcare
+CLEAN.NS,Chemicals
+CLEANMAX.NS,Power
+CMPDI.NS,Services
+COALINDIA.NS,Oil Gas & Consumable Fuels
+COCHINSHIP.NS,Capital Goods
+COFORGE.NS,Information Technology
+COHANCE.NS,Healthcare
+COLPAL.NS,Fast Moving Consumer Goods
+CONCOR.NS,Services
+CONCORDBIO.NS,Healthcare
+COROMANDEL.NS,Chemicals
+CPPLUS.NS,Capital Goods
+CRAFTSMAN.NS,Automobile and Auto Components
+CREDITACC.NS,Financial Services
+CRISIL.NS,Financial Services
+CROMPTON.NS,Consumer Durables
+CUB.NS,Financial Services
+CUMMINSIND.NS,Capital Goods
+CUPID.NS,Fast Moving Consumer Goods
+CYIENT.NS,Information Technology
+DABUR.NS,Fast Moving Consumer Goods
+DALBHARAT.NS,Construction Materials
+DATAPATTNS.NS,Capital Goods
+DEEPAKFERT.NS,Chemicals
+DEEPAKNTR.NS,Chemicals
+DELHIVERY.NS,Services
+DEVYANI.NS,Consumer Services
+DIVISLAB.NS,Healthcare
+DIXON.NS,Consumer Durables
+DLF.NS,Realty
+DMART.NS,Consumer Services
+DOMS.NS,Fast Moving Consumer Goods
+DRREDDY.NS,Healthcare
+DUMMYHEG.NS,Capital Goods
+ECLERX.NS,Services
+EICHERMOT.NS,Automobile and Auto Components
+EIDPARRY.NS,Fast Moving Consumer Goods
+EIHOTEL.NS,Consumer Services
+ELECON.NS,Capital Goods
+ELGIEQUIP.NS,Capital Goods
+EMAMILTD.NS,Fast Moving Consumer Goods
+EMBASSY.NS,Realty
+EMCURE.NS,Healthcare
+EMMVEE.NS,Capital Goods
+ENDURANCE.NS,Automobile and Auto Components
+ENGINERSIN.NS,Construction
+ENRIN.NS,Capital Goods
+ESCORTS.NS,Capital Goods
+ETERNAL.NS,Consumer Services
+EXIDEIND.NS,Automobile and Auto Components
+FACT.NS,Chemicals
+FEDERALBNK.NS,Financial Services
+FINCABLES.NS,Capital Goods
+FIRSTCRY.NS,Consumer Services
+FIVESTAR.NS,Financial Services
+FLUOROCHEM.NS,Chemicals
+FORCEMOT.NS,Automobile and Auto Components
+FORTIS.NS,Healthcare
+FRACTAL.NS,Information Technology
+FSL.NS,Services
+GABRIEL.NS,Automobile and Auto Components
+GAIL.NS,Oil Gas & Consumable Fuels
+GALLANTT.NS,Capital Goods
+GESHIP.NS,Services
+GICRE.NS,Financial Services
+GILLETTE.NS,Fast Moving Consumer Goods
+GLAND.NS,Healthcare
+GLAXO.NS,Healthcare
+GLENMARK.NS,Healthcare
+GMDCLTD.NS,Metals & Mining
+GMRAIRPORT.NS,Services
+GODFRYPHLP.NS,Fast Moving Consumer Goods
+GODREJCP.NS,Fast Moving Consumer Goods
+GODREJIND.NS,Diversified
+GODREJPROP.NS,Realty
+GPIL.NS,Capital Goods
+GRANULES.NS,Healthcare
+GRAPHITE.NS,Capital Goods
+GRASIM.NS,Construction Materials
+GRAVITA.NS,Metals & Mining
+GROWW.NS,Financial Services
+GRSE.NS,Capital Goods
+GVT&D.NS,Capital Goods
+HAL.NS,Capital Goods
+HAVELLS.NS,Consumer Durables
+HBLENGINE.NS,Capital Goods
+HCLTECH.NS,Information Technology
+HDBFS.NS,Financial Services
+HDFCAMC.NS,Financial Services
+HDFCBANK.NS,Financial Services
+HDFCLIFE.NS,Financial Services
+HEGAM.NS,Capital Goods
+HEROMOTOCO.NS,Automobile and Auto Components
+HEXT.NS,Information Technology
+HFCL.NS,Telecommunication
+HINDALCO.NS,Metals & Mining
+HINDCOPPER.NS,Metals & Mining
+HINDPETRO.NS,Oil Gas & Consumable Fuels
+HINDUNILVR.NS,Fast Moving Consumer Goods
+HINDZINC.NS,Metals & Mining
+HOMEFIRST.NS,Financial Services
+HONASA.NS,Fast Moving Consumer Goods
+HONAUT.NS,Capital Goods
+HSCL.NS,Chemicals
+HUDCO.NS,Financial Services
+HYUNDAI.NS,Automobile and Auto Components
+ICICIAMC.NS,Financial Services
+ICICIBANK.NS,Financial Services
+ICICIGI.NS,Financial Services
+ICICIPRULI.NS,Financial Services
+IDBI.NS,Financial Services
+IDEA.NS,Telecommunication
+IDFCFIRSTB.NS,Financial Services
+IEX.NS,Financial Services
+IFCI.NS,Financial Services
+IGIL.NS,Services
+IGL.NS,Oil Gas & Consumable Fuels
+IIFL.NS,Financial Services
+IKS.NS,Information Technology
+INDHOTEL.NS,Consumer Services
+INDIACEM.NS,Construction Materials
+INDIAMART.NS,Consumer Services
+INDIANB.NS,Financial Services
+INDIGO.NS,Services
+INDUSINDBK.NS,Financial Services
+INDUSTOWER.NS,Telecommunication
+INFY.NS,Information Technology
+INOXINDIA.NS,Capital Goods
+INOXWIND.NS,Capital Goods
+INTELLECT.NS,Information Technology
+IOB.NS,Financial Services
+IOC.NS,Oil Gas & Consumable Fuels
+IPCALAB.NS,Healthcare
+IRB.NS,Construction
+IRCON.NS,Construction
+IRCTC.NS,Consumer Services
+IREDA.NS,Financial Services
+IRFC.NS,Financial Services
+ITC.NS,Fast Moving Consumer Goods
+ITCHOTELS.NS,Consumer Services
+ITI.NS,Telecommunication
+J&KBANK.NS,Financial Services
+JAINREC.NS,Metals & Mining
+JBMA.NS,Automobile and Auto Components
+JINDALSAW.NS,Capital Goods
+JINDALSTEL.NS,Metals & Mining
+JIOFIN.NS,Financial Services
+JKCEMENT.NS,Construction Materials
+JKTYRE.NS,Automobile and Auto Components
+JMFINANCIL.NS,Financial Services
+JPPOWER.NS,Power
+JSL.NS,Metals & Mining
+JSWCEMENT.NS,Construction Materials
+JSWENERGY.NS,Power
+JSWINFRA.NS,Services
+JSWSTEEL.NS,Metals & Mining
+JUBLFOOD.NS,Consumer Services
+JUBLINGREA.NS,Chemicals
+JWL.NS,Capital Goods
+JYOTICNC.NS,Capital Goods
+KAJARIACER.NS,Consumer Durables
+KALYANKJIL.NS,Consumer Durables
+KARURVYSYA.NS,Financial Services
+KAYNES.NS,Capital Goods
+KEC.NS,Construction
+KEI.NS,Capital Goods
+KFINTECH.NS,Financial Services
+KIMS.NS,Healthcare
+KIRLOSBROS.NS,Capital Goods
+KIRLOSENG.NS,Capital Goods
+KOTAKBANK.NS,Financial Services
+KPIL.NS,Construction
+KPITTECH.NS,Information Technology
+KPRMILL.NS,Textiles
+KSB.NS,Capital Goods
+LALPATHLAB.NS,Healthcare
+LAURUSLABS.NS,Healthcare
+LEMONTREE.NS,Consumer Services
+LENSKART.NS,Consumer Services
+LGEINDIA.NS,Consumer Durables
+LICHSGFIN.NS,Financial Services
+LICI.NS,Financial Services
+LINDEINDIA.NS,Chemicals
+LLOYDSME.NS,Metals & Mining
+LODHA.NS,Realty
+LT.NS,Construction
+LTF.NS,Financial Services
+LTFOODS.NS,Fast Moving Consumer Goods
+LTM.NS,Information Technology
+LTTS.NS,Information Technology
+LUPIN.NS,Healthcare
+M&M.NS,Automobile and Auto Components
+M&MFIN.NS,Financial Services
+MAHABANK.NS,Financial Services
+MANAPPURAM.NS,Financial Services
+MANKIND.NS,Healthcare
+MARICO.NS,Fast Moving Consumer Goods
+MARUTI.NS,Automobile and Auto Components
+MAXHEALTH.NS,Healthcare
+MAZDOCK.NS,Capital Goods
+MCX.NS,Financial Services
+MEDANTA.NS,Healthcare
+MEESHO.NS,Consumer Services
+MFSL.NS,Financial Services
+MGL.NS,Oil Gas & Consumable Fuels
+MINDACORP.NS,Automobile and Auto Components
+MMTC.NS,Services
+MOTHERSON.NS,Automobile and Auto Components
+MOTILALOFS.NS,Financial Services
+MPHASIS.NS,Information Technology
+MRF.NS,Automobile and Auto Components
+MRPL.NS,Oil Gas & Consumable Fuels
+MSUMI.NS,Automobile and Auto Components
+MTARTECH.NS,Capital Goods
+MUTHOOTFIN.NS,Financial Services
+NAM-INDIA.NS,Financial Services
+NATCOPHARM.NS,Healthcare
+NATIONALUM.NS,Metals & Mining
+NAUKRI.NS,Consumer Services
+NAVA.NS,Power
+NAVINFLUOR.NS,Chemicals
+NBCC.NS,Construction
+NCC.NS,Construction
+NESTLEIND.NS,Fast Moving Consumer Goods
+NETWEB.NS,Information Technology
+NEULANDLAB.NS,Healthcare
+NH.NS,Healthcare
+NHPC.NS,Power
+NIACL.NS,Financial Services
+NLCINDIA.NS,Power
+NMDC.NS,Metals & Mining
+NSLNISP.NS,Metals & Mining
+NTPC.NS,Power
+NTPCGREEN.NS,Power
+NUVAMA.NS,Financial Services
+NUVOCO.NS,Construction Materials
+NYKAA.NS,Consumer Services
+OBEROIRLTY.NS,Realty
+OFSS.NS,Information Technology
+OIL.NS,Oil Gas & Consumable Fuels
+OLAELEC.NS,Automobile and Auto Components
+OLECTRA.NS,Automobile and Auto Components
+ONESOURCE.NS,Healthcare
+ONGC.NS,Oil Gas & Consumable Fuels
+PAGEIND.NS,Textiles
+PARADEEP.NS,Chemicals
+PATANJALI.NS,Fast Moving Consumer Goods
+PAYTM.NS,Financial Services
+PCBL.NS,Chemicals
+PERSISTENT.NS,Information Technology
+PETRONET.NS,Oil Gas & Consumable Fuels
+PFC.NS,Financial Services
+PFOCUS.NS,Media Entertainment & Publication
+PGEL.NS,Consumer Durables
+PHOENIXLTD.NS,Realty
+PIDILITIND.NS,Chemicals
+PIIND.NS,Chemicals
+PINELABS.NS,Financial Services
+PIRAMALFIN.NS,Financial Services
+PNB.NS,Financial Services
+PNBHOUSING.NS,Financial Services
+POLICYBZR.NS,Financial Services
+POLYCAB.NS,Capital Goods
+POLYMED.NS,Healthcare
+POONAWALLA.NS,Financial Services
+POWERGRID.NS,Power
+POWERINDIA.NS,Capital Goods
+PPLPHARMA.NS,Healthcare
+PREMIERENE.NS,Capital Goods
+PRESTIGE.NS,Realty
+PRIVISCL.NS,Chemicals
+PTCIL.NS,Capital Goods
+PVRINOX.NS,Media Entertainment & Publication
+PWL.NS,Consumer Services
+RADICO.NS,Fast Moving Consumer Goods
+RAILTEL.NS,Telecommunication
+RAINBOW.NS,Healthcare
+RAMCOCEM.NS,Construction Materials
+RBLBANK.NS,Financial Services
+RECLTD.NS,Financial Services
+REDINGTON.NS,Services
+RELIANCE.NS,Oil Gas & Consumable Fuels
+RHIM.NS,Capital Goods
+RITES.NS,Construction
+RKFORGE.NS,Automobile and Auto Components
+RPOWER.NS,Power
+RRKABEL.NS,Capital Goods
+RUBICON.NS,Healthcare
+RVNL.NS,Construction
+SAGILITY.NS,Information Technology
+SAIL.NS,Metals & Mining
+SAILIFE.NS,Healthcare
+SAMMAANCAP.NS,Financial Services
+SANSERA.NS,Automobile and Auto Components
+SARDAEN.NS,Metals & Mining
+SBICARD.NS,Financial Services
+SBILIFE.NS,Financial Services
+SBIN.NS,Financial Services
+SCHAEFFLER.NS,Automobile and Auto Components
+SCHNEIDER.NS,Capital Goods
+SCI.NS,Services
+SHREECEM.NS,Construction Materials
+SHRIPISTON.NS,Automobile and Auto Components
+SHRIRAMFIN.NS,Financial Services
+SHYAMMETL.NS,Capital Goods
+SIEMENS.NS,Capital Goods
+SIGNATURE.NS,Realty
+SJVN.NS,Power
+SOBHA.NS,Realty
+SOLARINDS.NS,Chemicals
+SONACOMS.NS,Automobile and Auto Components
+SRF.NS,Chemicals
+STARHEALTH.NS,Financial Services
+STLTECH.NS,Telecommunication
+SUMICHEM.NS,Chemicals
+SUNDARMFIN.NS,Financial Services
+SUNPHARMA.NS,Healthcare
+SUNTV.NS,Media Entertainment & Publication
+SUPREMEIND.NS,Capital Goods
+SUZLON.NS,Capital Goods
+SWANCORP.NS,Chemicals
+SWIGGY.NS,Consumer Services
+SYNGENE.NS,Healthcare
+SYRMA.NS,Capital Goods
+TARIL.NS,Capital Goods
+TATACAP.NS,Financial Services
+TATACHEM.NS,Chemicals
+TATACOMM.NS,Telecommunication
+TATACONSUM.NS,Fast Moving Consumer Goods
+TATAELXSI.NS,Information Technology
+TATAINVEST.NS,Financial Services
+TATAPOWER.NS,Power
+TATASTEEL.NS,Metals & Mining
+TATATECH.NS,Information Technology
+TBOTEK.NS,Consumer Services
+TCS.NS,Information Technology
+TDPOWERSYS.NS,Capital Goods
+TECHM.NS,Information Technology
+TECHNOE.NS,Construction
+TEGA.NS,Capital Goods
+TEJASNET.NS,Telecommunication
+TENNIND.NS,Automobile and Auto Components
+THANGAMAYL.NS,Consumer Durables
+THERMAX.NS,Capital Goods
+TIINDIA.NS,Automobile and Auto Components
+TIMKEN.NS,Capital Goods
+TITAGARH.NS,Capital Goods
+TITAN.NS,Consumer Durables
+TMCV.NS,Capital Goods
+TMPV.NS,Automobile and Auto Components
+TORNTPHARM.NS,Healthcare
+TORNTPOWER.NS,Power
+TRENT.NS,Consumer Services
+TRIDENT.NS,Textiles
+TRITURBINE.NS,Capital Goods
+TTML.NS,Telecommunication
+TVSMOTOR.NS,Automobile and Auto Components
+UBL.NS,Fast Moving Consumer Goods
+UCOBANK.NS,Financial Services
+ULTRACEMCO.NS,Construction Materials
+UNIONBANK.NS,Financial Services
+UNITDSPR.NS,Fast Moving Consumer Goods
+UNOMINDA.NS,Automobile and Auto Components
+UPL.NS,Chemicals
+URBANCO.NS,Consumer Services
+USHAMART.NS,Capital Goods
+UTIAMC.NS,Financial Services
+VAML.NS,Metals & Mining
+VBL.NS,Fast Moving Consumer Goods
+VEDL.NS,Metals & Mining
+VEDPOWER.NS,Power
+VIJAYA.NS,Healthcare
+VISL.NS,Metals & Mining
+VMM.NS,Consumer Services
+VOGL.NS,Oil Gas & Consumable Fuels
+VOLTAS.NS,Consumer Durables
+VTL.NS,Textiles
+WAAREEENER.NS,Capital Goods
+WELCORP.NS,Capital Goods
+WELSPUNLIV.NS,Textiles
+WHIRLPOOL.NS,Consumer Durables
+WIPRO.NS,Information Technology
+WOCKPHARMA.NS,Healthcare
+YESBANK.NS,Financial Services
+ZEEL.NS,Media Entertainment & Publication
+ZENSARTECH.NS,Information Technology
+ZENTEC.NS,Capital Goods
+ZFCVINDIA.NS,Automobile and Auto Components
+ZYDUSLIFE.NS,Healthcare
+ZYDUSWELL.NS,Fast Moving Consumer Goods

@@ -26,6 +26,12 @@ equity, loss halts, and timestamps. Configuration changes require explicit
 migration or a new account; the application does not reset an existing account
 silently. A transaction writes the event and the account checkpoint together.
 
+Sector classifications are part of the stored account contract. The expanded
+26 October 2026 sector map therefore prevents reopening accounts created with
+the old map. Preserve those databases; use a separate new account unless an
+explicit migration has been implemented and reviewed. No automatic migration
+or reset is provided.
+
 ## Input contract
 
 Each JSONL row contains `action` (`enter`, `mark`, or `exit`), a unique `event_id`,

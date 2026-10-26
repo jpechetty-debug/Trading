@@ -88,6 +88,28 @@ class BrainAV5:
         return df
 
     def resample_to_15m(self, df):
+        """Aggregate only observed buckets; preserve the same rolling-window EMA."""
+        if df.empty or not df.index.is_monotonic_increasing or not df.index.is_unique:
+            return self._resample_to_15m_reference(df)
+        values = df[['Open', 'High', 'Low', 'Close', 'Volume']].to_numpy(dtype=float)
+        if not np.isfinite(values).all():
+            return self._resample_to_15m_reference(df)
+        buckets = df.index.floor('15min')
+        starts = np.r_[0, np.flatnonzero(buckets.asi8[1:] != buckets.asi8[:-1]) + 1]
+        ends = np.r_[starts[1:], len(df)]
+        labels = buckets[starts]
+        complete = ((ends - starts == 3) &
+                    (labels + pd.Timedelta(minutes=15) <=
+                     df.index[-1] + pd.Timedelta(seconds=config.CANDLE_INTERVAL_SECONDS)))
+        result = pd.DataFrame({
+            'Open': values[starts, 0], 'High': np.maximum.reduceat(values[:, 1], starts),
+            'Low': np.minimum.reduceat(values[:, 2], starts), 'Close': values[ends - 1, 3],
+            'Volume': np.add.reduceat(values[:, 4], starts),
+        }, index=labels).loc[complete]
+        result['EMA_20'] = ta.ema(result['Close'], length=20)
+        return result
+
+    def _resample_to_15m_reference(self, df):
         logic = {'Open': 'first', 'High': 'max', 'Low': 'min', 'Close': 'last', 'Volume': 'sum'}
         df_15m = df.resample('15min').apply(logic).dropna()
         if df.empty:
@@ -101,63 +123,36 @@ class BrainAV5:
 
     # --- INSTITUTIONAL UPGRADES ---
 
+    @staticmethod
+    def _aligned_closes(stock_df, nifty_df):
+        if stock_df is None or nifty_df is None:
+            return np.array([]), np.array([])
+        if not stock_df.index.is_unique or not nifty_df.index.is_unique:
+            merged = stock_df[['Close']].join(nifty_df[['Close']], how='inner',
+                                               lsuffix='_stock', rsuffix='_nifty')
+            return merged.Close_stock.to_numpy(), merged.Close_nifty.to_numpy()
+        positions = nifty_df.index.get_indexer(stock_df.index)
+        valid = positions >= 0
+        return (stock_df.Close.to_numpy()[valid], nifty_df.Close.to_numpy()[positions[valid]])
+
     def calculate_relative_strength(self, stock_df, nifty_df, lookback=None):
-        """
-        Base RS Score (Log Returns)
-        """
-        if lookback is None: lookback = self.rs_lookback
-        if nifty_df is None or stock_df is None:
+        lookback = self.rs_lookback if lookback is None else lookback
+        stock, nifty = self._aligned_closes(stock_df, nifty_df)
+        if len(stock) < lookback + 1:
             return 0.0
-        # Inner join to align timestamps perfectly
-        merged = stock_df[['Close']].join(
-            nifty_df[['Close']], 
-            how="inner", 
-            lsuffix="_stock", 
-            rsuffix="_nifty"
-        )
-
-        if len(merged) < lookback + 1: return 0.0
-
-        stock_ret = np.log(merged['Close_stock'] / merged['Close_stock'].shift(lookback)).iloc[-1]
-        nifty_ret = np.log(merged['Close_nifty'] / merged['Close_nifty'].shift(lookback)).iloc[-1]
-
-        return round((stock_ret - nifty_ret) * 100, 2)
+        return round((np.log(stock[-1] / stock[-1-lookback])
+                      - np.log(nifty[-1] / nifty[-1-lookback])) * 100, 2)
 
     def calculate_rs_slope(self, stock_df, nifty_df, lookback=None):
-        """
-        UPGRADE 1: RS Trend (Slope)
-        Checks if RS is accelerating over the last 5 candles.
-        """
-        if lookback is None: lookback = self.rs_lookback
-        if nifty_df is None or stock_df is None:
+        lookback = self.rs_lookback if lookback is None else lookback
+        stock, nifty = self._aligned_closes(stock_df, nifty_df)
+        if len(stock) <= lookback + 5:
             return 0.0
-
-        # FIX: align stock and nifty by timestamp ONCE, up front, then slice
-        # the aligned frame positionally. The previous version sliced
-        # stock_df.iloc[:-i] and nifty_df.iloc[:-i] independently ("Assuming
-        # aligned via previous fetch logic roughly") — if the two frames
-        # have different bar counts (a missing candle on one side, holidays,
-        # partial data, etc.) that positional slicing silently compares the
-        # wrong timestamps against each other.
-        merged = stock_df[['Close']].join(
-            nifty_df[['Close']], how="inner", lsuffix="_stock", rsuffix="_nifty"
-        )
-
-        scores = []
-        # Calculate RS for previous 5 steps to see the trend
-        for i in range(5, 0, -1):
-            if len(merged) <= i + lookback:
-                return 0.0
-            m_slice = merged.iloc[:-i]
-            stock_ret = np.log(m_slice['Close_stock'] / m_slice['Close_stock'].shift(lookback)).iloc[-1]
-            nifty_ret = np.log(m_slice['Close_nifty'] / m_slice['Close_nifty'].shift(lookback)).iloc[-1]
-            scores.append(round((stock_ret - nifty_ret) * 100, 2))
-
-        if len(scores) < 3: return 0.0
-        
-        # Polyfit to find slope (Trajectory)
-        slope = np.polyfit(range(len(scores)), scores, 1)[0]
-        return slope
+        # Exactly the original five aligned prefixes, excluding the current bar.
+        scores = [round((np.log(stock[-i-1] / stock[-i-1-lookback])
+                         - np.log(nifty[-i-1] / nifty[-i-1-lookback])) * 100, 2)
+                  for i in range(5, 0, -1)]
+        return np.polyfit(range(5), scores, 1)[0]
 
     def is_nr7(self, df):
         ranges = (df['High'] - df['Low']).tail(7)

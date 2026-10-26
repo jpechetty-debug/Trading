@@ -53,17 +53,26 @@ class PortfolioConstraints:
 
     def _load_sector_map(self, filepath):
         if os.path.exists(filepath):
-            try:
-                df = pd.read_csv(filepath, index_col=0)
-                return df['Sector'].to_dict()
-            except Exception:
-                log.warning("Could not parse nse_sectors.csv. Using fallback.")
+            df = pd.read_csv(filepath, dtype=str, keep_default_na=False)
+            if not {'Symbol', 'Sector'}.issubset(df.columns):
+                raise ValueError('Sector map requires Symbol and Sector columns')
+            df['Symbol'] = df['Symbol'].str.strip().str.upper()
+            df['Sector'] = df['Sector'].str.strip()
+            if df.Symbol.duplicated().any() or (df.Symbol == '').any() or (df.Sector == '').any():
+                raise ValueError('Sector map has blank or duplicate classifications')
+            return dict(zip(df.Symbol, df.Sector))
 
         return {
             "HDFCBANK.NS": "BANK", "ICICIBANK.NS": "BANK", "SBIN.NS": "BANK", "AXISBANK.NS": "BANK",
             "RELIANCE.NS": "ENERGY", "ONGC.NS": "ENERGY", "NTPC.NS": "ENERGY",
             "TCS.NS": "IT", "INFY.NS": "IT", "WIPRO.NS": "IT"
         }
+
+    def sector_coverage(self, tickers):
+        symbols = sorted(set(tickers))
+        missing = [ticker for ticker in symbols if self.sector_map.get(ticker, 'OTHER') == 'OTHER']
+        return {'requested': len(symbols), 'mapped': len(symbols) - len(missing),
+                'unmapped': missing, 'unknown_policy': 'Shared OTHER bucket; sector cap remains enforced'}
 
     def update_price_data(self, data_map: dict):
         """

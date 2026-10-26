@@ -1,0 +1,14 @@
+{
+  "source_path": "D:\\Codex\\Finding Multibagger NSE\\multibagger634-main\\review\\universe-expansion-20261015\\nifty500.csv",
+  "source_sha256": "2959bf206239284e145f7aecc65095b18d11556d2642323a70f2d26efe0f5cb3",
+  "source_kind": "Saved NSE constituent CSV; Industry column used consistently as sector taxonomy",
+  "mapped_symbols": 501,
+  "sector_count": 20,
+  "configured_universe_size": 201,
+  "mapped_universe_symbols": 199,
+  "missing_universe_symbols": [
+    "DUMMYHDLVR.NS",
+    "LTIM.NS"
+  ],
+  "limitations": "Snapshot classifications, not point-in-time history. Missing names retain conservative OTHER treatment; no identity aliases inferred."
+}

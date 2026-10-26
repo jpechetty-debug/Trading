@@ -148,14 +148,55 @@ The old sensitivity/WFO CSVs were not overwritten with synthetic results.
 Regenerating market-performance reports requires compatible, vetted five-minute
 stock and benchmark histories; the audited daily files cannot supply them.
 
+## Sector coverage and runtime follow-up
+
+The 23-entry map pooled 179 configured symbols into `OTHER`, causing the
+two-per-sector position limit to bind across unrelated businesses. Rebuilt the
+map from the saved NSE constituent CSV in the other project's
+`review/universe-expansion-20261015/nifty500.csv`. It now has 501 symbols in 20
+sectors and covers 199 of 201 configured tickers. Source path and SHA-256 are in
+`data/nse_sectors.provenance.json`; `scripts/build_sector_map.py` reproduces it
+without downloads. Other-project files were not changed.
+
+`DUMMYHDLVR.NS` and `LTIM.NS` have no exact match in that snapshot and retain
+conservative shared-`OTHER` treatment. No symbol aliases were inferred. The
+consistent taxonomy groups banks and other financial firms as `Financial
+Services`, changing concentration groupings from the prior mixed labels.
+This is current snapshot metadata, not historical point-in-time classification.
+Malformed maps now raise explicit errors, and local reports include coverage.
+Tests permit five positions in distinct classified sectors while still rejecting
+a third financial-sector position. Cash, risk and correlation gates still apply.
+Existing paper databases pin their original sector map and require a new account
+or explicit migration; they are not silently rewritten.
+
+Profiling identified repeated pandas 15-minute resampling and RS calculations
+as the main cost. Array aggregation now computes only observed complete groups;
+aligned price arrays replace repeated joins and shifted return Series. The same
+rolling-window 15-minute EMA is retained. Irregular/nonfinite resampling inputs
+fall back to the original pandas routine. Scoring thresholds and exits did not
+change.
+
+On the same eight-ticker, five-session synthetic workload, an unprofiled run
+fell from 12.497 seconds to 4.637 seconds (2.70x faster). All 15 trade records
+and all decision events match exactly. `research/runtime_comparison.json`
+records the comparison; `scripts/benchmark_backtest.py` reproduces the workload.
+Regression tests compare the optimized calculations with the original pandas
+operations across gaps, partial windows, aware timestamps and irregular inputs,
+then compare complete real-engine executions. This is a single local timing
+comparison, not a 200-ticker scalability or profitability claim.
+
+Cost sensitivity and structural-exit churn still need real intraday data.
+Short scoring remains unchanged, no compatible five-minute histories were
+found, and the paper ledger still requires explicit events from its caller.
+
 The original baseline had 87 passing tests. The first pass expanded that to 141;
 the second pass reached 223, the review follow-up reached 230, and the current
-suite passes **250 tests**. Verification
+suite passes **268 tests**. Verification
 completed across 25–26 October 2026 and
 used the project `.venv` (Python 3.12.10, pandas 2.3.3, NumPy 2.2.6, pandas-ta
 0.4.71b0, pytest 8.4.2):
 
-- `python scripts/verify_project.py`: syntax, configuration, all 250 offline tests,
+- `python scripts/verify_project.py`: syntax, configuration, all 268 offline tests,
   and simulation entry-point imports passed.
 - `python -m pip check`: no broken requirements in the project environment.
 - `git diff --check`: no whitespace errors.
@@ -211,7 +252,7 @@ compatibility. Live simulations remain explicit opt-in commands.
 
 A code-only graph was generated locally in ignored `graphify-out/`, with a
 report, JSON graph, and interactive HTML. Its main hubs are BrainAV5,
-PortfolioEngine, LiveScanner, and ExecutionModel. It covers `src/`, not the
+PortfolioEngine, LiveScanner, and ExecutionModel. It covers this repository, not the
 other repositories. Structural extraction used no model tokens or API calls.
 Inferred relationships are navigation aids; the findings above were confirmed
 against source and regression tests.

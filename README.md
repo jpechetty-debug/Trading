@@ -85,6 +85,21 @@ modeled costs, cost per unit of initial risk, capital resizing events, largest
 entry notional, and maximum simultaneous positions. The 1.5x/2x cost scenarios
 hold fills and quantities fixed; they are accounting sensitivity checks.
 
+Sector coverage is included in each local backtest report. The bundled map now
+contains 501 symbols across 20 sectors, covering 199 of the 201 configured
+tickers. It uses the saved NSE constituent CSV found in the other project;
+[provenance](data/nse_sectors.provenance.json) records its source and hash.
+`DUMMYHDLVR.NS` and `LTIM.NS` remain in the shared `OTHER` bucket pending verified
+identity/classification data. Financial companies share `Financial Services`.
+These are snapshot classifications, not point-in-time historical sectors.
+
+An offline runtime benchmark is available with
+`python scripts/benchmark_backtest.py --days 5 --tickers 8 --output research/data/runtime.json`.
+Array-based completed-bar aggregation and RS calculations reduced the measured
+runtime from 12.50 to 4.64 seconds on this workload, with identical trades and
+rejection events. See the [comparison](research/runtime_comparison.json).
+This synthetic benchmark measures implementation behavior, not strategy returns.
+
 Scoring reuses prepared indicators and no longer depends on the unused EMA200.
 Support/resistance come from the preceding 20 bars. A level already broken by
 the completed signal close does not cap its ATR target; an unbroken level still

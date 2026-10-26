@@ -48,6 +48,7 @@ def main():
         'execution_model': 'next_bar_open',
         'max_position_notional_pct': engine.max_position_notional_pct,
         'diagnostics': summarize_execution(results, engine.events, engine.exposure_history),
+        'sector_coverage': engine.constraints.sector_coverage(engine.tickers),
         'assumptions': ['Signals fill at the next contiguous five-minute bar open after revalidation.',
                         'Remaining positions close at the last observed price when data ends; stale marks are labelled.'],
     }
