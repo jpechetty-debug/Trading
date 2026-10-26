@@ -12,6 +12,7 @@ def make_engine(monkeypatch, closes=(100, 101, 103), times=None,
     # Isolate accounting/loss tests from the independent exposure-cap tests.
     monkeypatch.setattr(config, 'MAX_TRADE_RISK_PCT', 0.9)
     monkeypatch.setattr(config, 'MAX_PORTFOLIO_RISK_PCT', 0.95)
+    monkeypatch.setattr(config, 'MAX_POSITION_NOTIONAL_PCT', 1.0)
     monkeypatch.setattr('src.backtest.constraints.MAX_CLUSTER_EXPOSURE_PCT', 1.0)
     times = pd.DatetimeIndex(times if times is not None else
                              pd.date_range('2024-01-01 09:15', periods=len(closes), freq='5min'))

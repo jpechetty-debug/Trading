@@ -8,6 +8,7 @@ from src.data.store import DataStore
 from src.brain_a_v5 import BrainAV5
 from src.execution.model import ExecutionModel
 from src.execution.costs import NSECostModel
+from src.execution.capital import affordable_shares
 from src.backtest.portfolio import Portfolio
 from src.backtest.constraints import PortfolioConstraints
 from src.regime import RegimeDetector
@@ -25,7 +26,7 @@ class PortfolioEngine:
     - Market Breadth Filter (50-EMA Universe scan)
     - Event & Gap Risk Filtering
     """
-    def __init__(self, tickers, start_date="2024-01-01", initial_equity=100000.0, kill_threshold=6.0, adaptive_mode=False, data_store=None, end_date=None):
+    def __init__(self, tickers, start_date="2024-01-01", initial_equity=100000.0, kill_threshold=6.0, adaptive_mode=False, data_store=None, end_date=None, max_position_notional_pct=None):
         if not np.isfinite(initial_equity) or initial_equity <= 0:
             raise ValueError("initial_equity must be finite and positive")
         self.tickers = list(dict.fromkeys(DataStore._normalize_ticker(t) for t in tickers))
@@ -39,6 +40,10 @@ class PortfolioEngine:
         if not np.isfinite(kill_threshold) or not 0 <= kill_threshold <= 10:
             raise ValueError('kill_threshold must be in [0, 10]')
         self.initial_equity = initial_equity
+        self.max_position_notional_pct = (config.MAX_POSITION_NOTIONAL_PCT if max_position_notional_pct is None
+                                          else max_position_notional_pct)
+        if not np.isfinite(self.max_position_notional_pct) or not 0 < self.max_position_notional_pct <= 1:
+            raise ValueError('Position notional cap must be in (0, 1]')
         self.equity = initial_equity
         self.kill_threshold = kill_threshold
 
@@ -69,6 +74,7 @@ class PortfolioEngine:
         self.events = []
         self._pending = []
         self._daily_halted = False
+        self.exposure_history = []
 
     def _reset_run(self):
         """Isolate repeat runs without replacing tuned strategy/constraint objects."""
@@ -89,6 +95,7 @@ class PortfolioEngine:
         self.events = []
         self._pending = []
         self._daily_halted = False
+        self.exposure_history = []
 
     def _settle_closed_trades(self):
         self.portfolio.cleanup_positions()
@@ -244,8 +251,17 @@ class PortfolioEngine:
             
         return False
 
-    def _event(self, timestamp, ticker, reason):
-        self.events.append({'timestamp': timestamp.isoformat(), 'ticker': ticker, 'reason': reason})
+    def _event(self, timestamp, ticker, reason, **details):
+        self.events.append({'timestamp': timestamp.isoformat(), 'ticker': ticker, 'reason': reason, **details})
+
+    def _record_exposure(self, timestamp):
+        self.exposure_history.append({
+            'timestamp': timestamp.isoformat(), 'equity': self.equity,
+            'positions': len(self.portfolio.open_positions),
+            'entry_notional': sum(p.entry * p.shares for p in self.portfolio.open_positions),
+            'initial_stop_risk': sum(abs(p.entry - p.initial_stop) * p.shares
+                                     for p in self.portfolio.open_positions),
+        })
 
     def _risk_gate(self, timestamp):
         self.peak_equity = max(self.peak_equity, self.equity)
@@ -268,22 +284,10 @@ class PortfolioEngine:
         self._mark_equity()
 
     def _affordable_shares(self, order, signal):
-        invested = sum(p.shares * p.entry for p in self.portfolio.open_positions)
-        available = max(0.0, min(self.realized_equity, self.equity) - invested)
-        entry = order['entry']
-        lo, hi = 0, min(order['shares'], int(available // entry))
-        # Reserve round-trip friction as well as notional; cost is monotone in
-        # quantity, so a bounded integer search handles brokerage caps/impact.
-        while lo < hi:
-            quantity = (lo + hi + 1) // 2
-            costs = self.cost_model.round_trip_cost(
-                entry, entry, quantity, adv=signal.get('features', {}).get('vol_ma_20', 0),
-                direction=signal['direction'])
-            if entry * quantity + costs <= available:
-                lo = quantity
-            else:
-                hi = quantity - 1
-        return lo
+        return affordable_shares(order, equity=self.equity, realized_equity=self.realized_equity,
+            positions=self.portfolio.open_positions, cost_model=self.cost_model,
+            direction=signal['direction'], average_volume=signal.get('features', {}).get('vol_ma_20', 0),
+            position_cap=self.max_position_notional_pct)
 
     def _execute_pending(self, timestamp):
         pending, self._pending = self._pending, []
@@ -313,7 +317,11 @@ class PortfolioEngine:
             if not order['valid_rr']:
                 self._event(timestamp, ticker, 'INVALID_ORDER_AT_OPEN')
                 continue
+            requested_shares = order['shares']
             order['shares'] = self._affordable_shares(order, signal)
+            if order['shares'] < requested_shares:
+                self._event(timestamp, ticker, 'CAPITAL_RESIZED', requested_shares=requested_shares,
+                            filled_shares=order['shares'], position_cap=self.max_position_notional_pct)
             if order['shares'] <= 0:
                 self._event(timestamp, ticker, 'INSUFFICIENT_CAPITAL_AFTER_COSTS')
                 continue
@@ -333,6 +341,7 @@ class PortfolioEngine:
             self.portfolio.open_positions[-1].signal_time = signal_time
             self._event(timestamp, ticker, 'FILLED_NEXT_OPEN')
             self._mark_equity()
+            self._record_exposure(timestamp)
             if not self._risk_gate(timestamp):
                 return False
         return True
@@ -447,11 +456,16 @@ class PortfolioEngine:
                 "exit_quote_time": getattr(pos, 'exit_quote_time', pos.exit_time),
                 "entry": pos.entry, "exit": pos.exit_price,
                 "initial_stop": pos.initial_stop, "shares": pos.shares,
+                "Gross_PnL": (pos.exit_price - pos.entry) * pos.shares * (1 if pos.direction == 'LONG' else -1),
+                "Costs": self.cost_model.round_trip_cost(pos.entry, pos.exit_price, pos.shares,
+                    adv=pos.features.get('vol_ma_20', 0), direction=pos.direction),
+                "Initial_Risk": abs(pos.entry - pos.initial_stop) * pos.shares,
             })
         
         df = pd.DataFrame(results, columns=['ticker', 'PnL', 'Net_R', 'Reason', 'Held',
                           'trade_id', 'direction', 'signal_time', 'entry_time', 'exit_time',
-                          'exit_quote_time', 'entry', 'exit', 'initial_stop', 'shares'])
+                          'exit_quote_time', 'entry', 'exit', 'initial_stop', 'shares',
+                          'Gross_PnL', 'Costs', 'Initial_Risk'])
         if not df.empty:
             log.info("Trades: %d | Final Equity: ₹%.2f | Net Return: %.1f%%",
                      len(df), self.equity, ((self.equity/self.initial_equity)-1)*100)

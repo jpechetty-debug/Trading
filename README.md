@@ -69,12 +69,21 @@ from `tori-scanner`. They lack volume and are incompatible with this intraday
 strategy. See [the audit](research/local_data_audit.json) and
 [project review](docs/project_review.md) for evidence and remaining limitations.
 
+A subsequent read-only audit of `Finding Multibagger NSE/multibagger634-main`
+found 617,654 daily OHLCV rows across 635 symbols with volume, daily benchmark
+closes, and additional Fyers daily stores. No compatible five-minute histories
+were identified in the inspected stores. See the [database audit](research/multibagger_data_audit.json).
+
 Backtests use completed-bar signals and fill at the next contiguous five-minute
 bar's open. Missing bars, expired signals, overnight carry, gaps, risk/reward,
 cash including modeled fees, and portfolio limits are checked before entry.
 Opening exits settle before new orders; later intrabar profits cannot fund an
 earlier opening fill. Reports include signal/entry/exit times, quote times,
 share quantities, net PnL, and rejection events.
+The JSON report also includes exit-reason and long/short breakdowns, gross PnL,
+modeled costs, cost per unit of initial risk, capital resizing events, largest
+entry notional, and maximum simultaneous positions. The 1.5x/2x cost scenarios
+hold fills and quantities fixed; they are accounting sensitivity checks.
 
 Scoring reuses prepared indicators and no longer depends on the unused EMA200.
 Support/resistance come from the preceding 20 bars. A level already broken by
@@ -95,6 +104,13 @@ positions also face actual stop-distance risk limits. Gaps and fees can exceed
 these nominal risk amounts. Defaults are engineering controls, not calibrated
 investment recommendations.
 
+`MAX_POSITION_NOTIONAL_PCT` caps each entry's notional plus fee reserve at 20%
+of equity by default. Override it per offline run with
+`--max-position-notional-pct 0.20` (use `1.0` to compare the previous cash-only
+allocation). This preserves capital for other positions without adding leverage;
+sector, correlation, signal, and cash gates can still prevent five simultaneous
+positions. Historical results need regeneration when this limit changes.
+
 The simulator reserves full notional for both longs and shorts, plus estimated
 fees, and does not model leverage or broker margin. Risk budgets are ceilings;
 available capital can reduce the executed risk and number of simultaneous
@@ -107,6 +123,21 @@ volume must convert it. Streaming failures cancel tasks and disconnect the feed.
 The polling bot's alert threshold is separately configurable through
 `ALERT_KILL_SCORE_THRESHOLD` (default 7.0). Its banner identifies outputs as
 indicative signals without broker/account risk enforcement.
+
+### Persistent offline paper account
+
+An explicit paper execution layer journals simulated entries, marks, exits,
+positions, and loss halts transactionally in SQLite. Replaying the same event
+IDs cannot duplicate fills. It uses the shared sizing, capital, cost, and
+portfolio constraints, and is not connected to a broker or the live scanner.
+
+```powershell
+python run_paper_account.py --ledger research/data/paper_demo.db --events examples/paper_events.jsonl
+```
+
+The example prices are synthetic. Exits must be submitted explicitly; automatic
+strategy execution, broker reconciliation, and a complete exchange calendar
+remain outstanding. See [paper-account usage and limitations](docs/paper_account.md).
 
 Run the complete offline gate with `python scripts/verify_project.py`.
 

@@ -5,6 +5,7 @@ from pathlib import Path
 
 from src.backtest.portfolio_engine import PortfolioEngine
 from src.data.store import DataStore
+from src.backtest.diagnostics import summarize_execution
 
 
 def main():
@@ -15,8 +16,13 @@ def main():
     parser.add_argument('--start-date', default='2024-01-01')
     parser.add_argument('--end-date', help='Exclusive end timestamp/date (IST)')
     parser.add_argument('--initial-equity', type=float, default=100_000)
+    parser.add_argument('--max-position-notional-pct', type=float,
+                        help='Entry capital ceiling per position; default is config.MAX_POSITION_NOTIONAL_PCT')
     parser.add_argument('--output', type=Path, help='Optional JSON trade report')
     args = parser.parse_args()
+    if args.max_position_notional_pct is not None:
+        if not 0 < args.max_position_notional_pct <= 1:
+            parser.error('Position notional cap must be in (0, 1]')
     for root in args.data_dir:
         if not root.is_dir():
             parser.error(f'Data directory does not exist: {root}')
@@ -27,7 +33,7 @@ def main():
             parser.error('Missing or incompatible five-minute data: ' + ', '.join(missing))
         engine = PortfolioEngine(args.tickers, start_date=args.start_date,
                                  initial_equity=args.initial_equity, data_store=store,
-                                 end_date=args.end_date)
+                                 end_date=args.end_date, max_position_notional_pct=args.max_position_notional_pct)
         results = engine.run()
     except ValueError as exc:
         parser.error(str(exc))
@@ -40,6 +46,8 @@ def main():
         'trades': json.loads(results.to_json(orient='records', date_format='iso')),
         'events': engine.events,
         'execution_model': 'next_bar_open',
+        'max_position_notional_pct': engine.max_position_notional_pct,
+        'diagnostics': summarize_execution(results, engine.events, engine.exposure_history),
         'assumptions': ['Signals fill at the next contiguous five-minute bar open after revalidation.',
                         'Remaining positions close at the last observed price when data ends; stale marks are labelled.'],
     }

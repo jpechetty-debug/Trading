@@ -5,7 +5,7 @@ import pytest
 
 
 @pytest.mark.parametrize('script', ['tests/test_yf_st.py', 'test_yf_download.py', 'run_local_backtest.py',
-                                  'scripts/audit_local_data.py'])
+                                  'scripts/audit_local_data.py', 'run_paper_account.py'])
 def test_manual_tools_have_no_network_calls_on_import(monkeypatch, script):
     calls = []
     def forbidden(*args, **kwargs):

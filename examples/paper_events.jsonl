@@ -1,0 +1,3 @@
+{"action":"enter","event_id":"demo-entry-1","signal":{"ticker":"RELIANCE.NS","close":100.0,"atr":2.0,"direction":"LONG","kill_score":8.0,"features":{}},"signal_time":"2024-01-02 09:15","timestamp":"2024-01-02 09:20","price":100.0,"authorized":true}
+{"action":"mark","event_id":"demo-mark-1","timestamp":"2024-01-02 09:25","quotes":{"RELIANCE.NS":{"price":101.0,"timestamp":"2024-01-02 09:25"}}}
+{"action":"exit","event_id":"demo-exit-1","position_id":"demo-entry-1","timestamp":"2024-01-02 09:30","price":102.0,"reason":"MANUAL_DEMO"}

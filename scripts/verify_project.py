@@ -75,6 +75,7 @@ def check_entry_points(live: bool) -> bool:
         "run_certification.py",
         "run_portfolio_sim.py",
         "run_local_backtest.py",
+        "run_paper_account.py",
     )
 
     import runpy

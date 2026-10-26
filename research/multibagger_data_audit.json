@@ -1,0 +1,304 @@
+{
+  "audited_at": "2026-10-26T02:52:44.134228+00:00",
+  "root": "D:\\Codex\\Finding Multibagger NSE\\multibagger634-main",
+  "access": "SQLite mode=ro; no source imports, credentials, downloads, or pickle decoding",
+  "tables": [
+    {
+      "file": "lite.db",
+      "table": "prices",
+      "rows": 617654,
+      "symbols": 635,
+      "first_date": "2021-10-07",
+      "last_date": "2026-10-23",
+      "date_string_lengths": [
+        10,
+        10
+      ],
+      "volume_nonnull_rows": 617654,
+      "five_minute_compatible": false,
+      "reason": "Date-only daily records; cannot reconstruct intraday OHLCV"
+    },
+    {
+      "file": "runtime\\fyers-history-before-20261016\\daily.sqlite3",
+      "table": "bars",
+      "rows": 6659,
+      "symbols": 1,
+      "first_date": "2000-01-03",
+      "last_date": "2026-10-13",
+      "date_string_lengths": [
+        10,
+        10
+      ],
+      "volume_nonnull_rows": 6659,
+      "five_minute_compatible": false,
+      "reason": "Date-only daily records; cannot reconstruct intraday OHLCV"
+    },
+    {
+      "file": "runtime\\fyers-mid-small-2017-before-20261016\\daily.sqlite3",
+      "table": "bars",
+      "rows": 3630,
+      "symbols": 2,
+      "first_date": "2019-06-20",
+      "last_date": "2026-10-15",
+      "date_string_lengths": [
+        10,
+        10
+      ],
+      "volume_nonnull_rows": 3630,
+      "five_minute_compatible": false,
+      "reason": "Date-only daily records; cannot reconstruct intraday OHLCV"
+    },
+    {
+      "file": "runtime\\fyers-nifty-2000-before-20261016\\daily.sqlite3",
+      "table": "bars",
+      "rows": 6659,
+      "symbols": 1,
+      "first_date": "2000-01-03",
+      "last_date": "2026-10-13",
+      "date_string_lengths": [
+        10,
+        10
+      ],
+      "volume_nonnull_rows": 6659,
+      "five_minute_compatible": false,
+      "reason": "Date-only daily records; cannot reconstruct intraday OHLCV"
+    },
+    {
+      "file": "runtime\\fyers-six-years-before-20261016\\daily.sqlite3",
+      "table": "bars",
+      "rows": 0,
+      "symbols": 0,
+      "first_date": null,
+      "last_date": null,
+      "date_string_lengths": [
+        null,
+        null
+      ],
+      "volume_nonnull_rows": null,
+      "five_minute_compatible": false,
+      "reason": "Date-only daily records; cannot reconstruct intraday OHLCV"
+    },
+    {
+      "file": "runtime\\fyers-stocks-2017-before-20261016\\daily.sqlite3",
+      "table": "bars",
+      "rows": 1001552,
+      "symbols": 626,
+      "first_date": "2017-01-02",
+      "last_date": "2026-10-13",
+      "date_string_lengths": [
+        10,
+        10
+      ],
+      "volume_nonnull_rows": 1001552,
+      "five_minute_compatible": false,
+      "reason": "Date-only daily records; cannot reconstruct intraday OHLCV"
+    }
+  ],
+  "fyers_cache": {
+    "rows": 152894,
+    "symbols": 638,
+    "first_date": "2025-10-13",
+    "last_date": "2026-10-21",
+    "date_string_lengths": [
+      10,
+      10
+    ],
+    "five_minute_compatible": false
+  },
+  "opaque_cache": {
+    "entries": 0,
+    "keys_containing_5m": 0,
+    "payloads_decoded": false
+  },
+  "benchmarks": [
+    {
+      "symbol": "NIFTY 50",
+      "rows": 1244,
+      "first_date": "2021-10-07",
+      "last_date": "2026-10-22"
+    },
+    {
+      "symbol": "NIFTY MIDCAP 150",
+      "rows": 1242,
+      "first_date": "2021-10-07",
+      "last_date": "2026-10-22"
+    },
+    {
+      "symbol": "NIFTY SMALLCAP 250",
+      "rows": 1243,
+      "first_date": "2021-10-07",
+      "last_date": "2026-10-22"
+    }
+  ],
+  "calendar_evidence": {
+    "document_id": "da30319de0d3d5834f57751c15c25edaf561e5f44120f4b153b47d899684b18c",
+    "sha256": "933cf5dc6dd4efe3b8db8ce6ecd6ecb2582929f5e0b4faffdb88e11cf4efdfbe",
+    "ingested_at": "2026-10-14T15:42:22.548997+00:00",
+    "source_uri": "https://www.nseindia.com/api/holiday-master?type=trading",
+    "segment": "CM",
+    "holidays": [
+      {
+        "tradingDate": "15-Jan-2026",
+        "weekDay": "Thursday",
+        "description": "Municipal Corporation Election - Maharashtra",
+        "morning_session": null,
+        "evening_session": null,
+        "Sr_no": 1
+      },
+      {
+        "tradingDate": "26-Jan-2026",
+        "weekDay": "Monday",
+        "description": "Republic Day",
+        "morning_session": null,
+        "evening_session": null,
+        "Sr_no": 2
+      },
+      {
+        "tradingDate": "15-Feb-2026",
+        "weekDay": "Sunday",
+        "description": "Mahashivratri",
+        "morning_session": null,
+        "evening_session": null,
+        "Sr_no": 3
+      },
+      {
+        "tradingDate": "03-Mar-2026",
+        "weekDay": "Tuesday",
+        "description": "Holi",
+        "morning_session": null,
+        "evening_session": null,
+        "Sr_no": 4
+      },
+      {
+        "tradingDate": "21-Mar-2026",
+        "weekDay": "Saturday",
+        "description": "Id-Ul-Fitr (Ramadan Eid)",
+        "morning_session": null,
+        "evening_session": null,
+        "Sr_no": 5
+      },
+      {
+        "tradingDate": "26-Mar-2026",
+        "weekDay": "Thursday",
+        "description": "Shri Ram Navami",
+        "morning_session": null,
+        "evening_session": null,
+        "Sr_no": 6
+      },
+      {
+        "tradingDate": "31-Mar-2026",
+        "weekDay": "Tuesday",
+        "description": "Shri Mahavir Jayanti",
+        "morning_session": null,
+        "evening_session": null,
+        "Sr_no": 7
+      },
+      {
+        "tradingDate": "03-Apr-2026",
+        "weekDay": "Friday",
+        "description": "Good Friday",
+        "morning_session": null,
+        "evening_session": null,
+        "Sr_no": 8
+      },
+      {
+        "tradingDate": "14-Apr-2026",
+        "weekDay": "Tuesday",
+        "description": "Dr. Baba Saheb Ambedkar Jayanti",
+        "morning_session": null,
+        "evening_session": null,
+        "Sr_no": 9
+      },
+      {
+        "tradingDate": "01-May-2026",
+        "weekDay": "Friday",
+        "description": "Maharashtra Day",
+        "morning_session": null,
+        "evening_session": null,
+        "Sr_no": 10
+      },
+      {
+        "tradingDate": "28-May-2026",
+        "weekDay": "Thursday",
+        "description": "Bakri Id",
+        "morning_session": null,
+        "evening_session": null,
+        "Sr_no": 11
+      },
+      {
+        "tradingDate": "26-Jun-2026",
+        "weekDay": "Friday",
+        "description": "Muharram",
+        "morning_session": null,
+        "evening_session": null,
+        "Sr_no": 12
+      },
+      {
+        "tradingDate": "15-Aug-2026",
+        "weekDay": "Saturday",
+        "description": "Independence Day",
+        "morning_session": null,
+        "evening_session": null,
+        "Sr_no": 13
+      },
+      {
+        "tradingDate": "14-Sep-2026",
+        "weekDay": "Monday",
+        "description": "Ganesh Chaturthi",
+        "morning_session": null,
+        "evening_session": null,
+        "Sr_no": 14
+      },
+      {
+        "tradingDate": "02-Oct-2026",
+        "weekDay": "Friday",
+        "description": "Mahatma Gandhi Jayanti",
+        "morning_session": null,
+        "evening_session": null,
+        "Sr_no": 15
+      },
+      {
+        "tradingDate": "20-Oct-2026",
+        "weekDay": "Tuesday",
+        "description": "Dussehra",
+        "morning_session": null,
+        "evening_session": null,
+        "Sr_no": 16
+      },
+      {
+        "tradingDate": "08-Nov-2026",
+        "weekDay": "Sunday",
+        "description": "Diwali Laxmi Pujan*",
+        "morning_session": null,
+        "evening_session": null,
+        "Sr_no": 17
+      },
+      {
+        "tradingDate": "10-Nov-2026",
+        "weekDay": "Tuesday",
+        "description": "Diwali-Balipratipada",
+        "morning_session": null,
+        "evening_session": null,
+        "Sr_no": 18
+      },
+      {
+        "tradingDate": "24-Nov-2026",
+        "weekDay": "Tuesday",
+        "description": "Prakash Gurpurb Sri Guru Nanak Dev",
+        "morning_session": null,
+        "evening_session": null,
+        "Sr_no": 19
+      },
+      {
+        "tradingDate": "25-Dec-2026",
+        "weekDay": "Friday",
+        "description": "Christmas",
+        "morning_session": null,
+        "evening_session": null,
+        "Sr_no": 20
+      }
+    ],
+    "scope": "Stored 2026 snapshot; special-session timings and subsequent revisions unverified; not activated in Trading"
+  },
+  "conclusion": "Substantial daily OHLCV with volume and daily benchmark closes found. No compatible five-minute stock/benchmark history identified in inspected production tables and named daily stores. Daily data and test fixtures must not be substituted for intraday performance evidence."
+}

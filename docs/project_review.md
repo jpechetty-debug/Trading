@@ -67,6 +67,51 @@ were fabricated from the daily snapshot. No strategy thresholds were tuned.
 
 ## Verification
 
+### Capital, diagnostics, paper ledger, and database follow-up
+
+The per-position entry-capital ceiling is now 20% of equity by default, including
+the estimated round-trip fee reserve. It can be varied per offline run, including
+1.0 for comparison with previous cash-only sizing. Both longs and shorts remain
+unlevered. Position-count, sector, correlation, and signal gates still apply;
+the cap creates room for diversification but does not force five positions.
+
+Reports now separate gross PnL, modeled costs, net PnL, and initial stop risk;
+summaries group results by exit reason and direction, report cost per R and
+holding bars, capital-resizing decisions, largest position, and maximum open
+positions. Fixed-fill 1.5x/2x cost scenarios are explicitly labelled accounting
+sensitivity. Structural-exit and short-scoring rules remain unchanged.
+
+The new offline paper account persists simulated entries, marks, exits, account
+state, and loss halts. Event IDs are idempotent; conflicting reuse is rejected.
+SQLite commits the event and state checkpoint atomically. Tests cover restarts,
+concurrent duplicate events, checkpoint rollback, stale/missing marks, short
+PnL, configuration changes, and persistent loss halts. A real BrainA signal,
+including pandas/numpy values, is accepted by the ledger. Replaying the three
+synthetic CLI example events twice leaves exactly three events and one closed
+position lifecycle. See `docs/paper_account.md` for the deliberately limited
+execution contract; this is not an automated paper strategy or broker gateway.
+
+**Correction to the data assessment:** the earlier statement about daily bars
+without volume applies to the 20-file tori-scanner snapshot, not all local
+databases. Read-only queries of Finding Multibagger NSE found:
+
+- `lite.db/prices`: 617,654 daily OHLCV rows, 635 symbols, 2021-10-07 through
+  2026-10-23; volume is non-null in all rows (not a complete value-quality audit).
+- `runtime/fyers-data.db/candles`: 152,894 daily records across 638 symbols.
+- Additional archived daily stores, including 1,001,552 rows in the stocks
+  history store; these overlap other sources and must not be summed as unique data.
+- Daily Nifty benchmark closes and a hash-verified saved 2026 NSE CM holiday
+  response. The calendar snapshot is retained as evidence but not activated as
+  a complete holiday/special-session calendar.
+
+Date fields in the inspected OHLCV stores are date-only. The generic opaque
+cache is empty. No five-minute stock/benchmark dataset was identified in the
+inspected production stores. Source databases were opened with `mode=ro`; no
+provider credentials were read, no source code was imported/executed, and no
+source data was modified. `research/multibagger_data_audit.json` records counts,
+date ranges, inspected stores, scope, and calendar provenance. It does not
+claim exhaustive validation of every archived blob or synthetic test fixture.
+
 ### Follow-up to the supplied review
 
 The review's 87-test baseline describes the earlier source. Direction-specific
@@ -104,12 +149,13 @@ Regenerating market-performance reports requires compatible, vetted five-minute
 stock and benchmark histories; the audited daily files cannot supply them.
 
 The original baseline had 87 passing tests. The first pass expanded that to 141;
-the second pass reached 223, and the follow-up now passes **230 tests**. Verification
+the second pass reached 223, the review follow-up reached 230, and the current
+suite passes **250 tests**. Verification
 completed across 25–26 October 2026 and
 used the project `.venv` (Python 3.12.10, pandas 2.3.3, NumPy 2.2.6, pandas-ta
 0.4.71b0, pytest 8.4.2):
 
-- `python scripts/verify_project.py`: syntax, configuration, all 230 offline tests,
+- `python scripts/verify_project.py`: syntax, configuration, all 250 offline tests,
   and simulation entry-point imports passed.
 - `python -m pip check`: no broken requirements in the project environment.
 - `git diff --check`: no whitespace errors.
@@ -130,10 +176,10 @@ compatibility. Live simulations remain explicit opt-in commands.
 
 ## Remaining production and research requirements
 
-- **Broker operations:** no connected account state, durable order/fill ledger,
-  idempotent order submission, partial-fill handling, or broker reconciliation.
-  Scanner outputs are indicative signals; portfolio risk enforcement currently
-  applies to the simulator. Restarting loses in-memory scanner deduplication.
+- **Broker operations:** no connected account state, real order submission,
+  partial-fill handling, or broker reconciliation. The new persistent paper
+  ledger requires explicit entries/marks/exits and is not wired to the scanner.
+  Scanner outputs remain indicative; restarting loses scanner deduplication.
 - **Market data:** vetted five-minute stocks and benchmark histories,
   point-in-time universes, corporate-action provenance, and feed-quality SLAs
   are still required. The daily snapshot from the other project is unsuitable.

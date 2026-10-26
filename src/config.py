@@ -7,6 +7,7 @@ SYSTEM_VERSION = "8.0"
 RISK_PER_TRADE = 10000  # INR (Base risk for sizing)
 MAX_TRADE_RISK_PCT = 0.01       # Stop-distance risk ceiling per trade / current equity
 MAX_PORTFOLIO_RISK_PCT = 0.05   # Aggregate initial stop-distance risk / current equity
+MAX_POSITION_NOTIONAL_PCT = 0.20 # Entry notional plus fee reserve / current equity
 TARGET_PORTFOLIO_VOL = 0.12 # 12% Annualized
 DATA_MODE = "HISTORICAL"  # "HISTORICAL" or "LIVE"
 CANDLE_INTERVAL_SECONDS = 300  # 5 minutes
@@ -68,7 +69,7 @@ def validate_config():
         'STOP_LOSS_MULTIPLIER', 'TARGET_MULTIPLIER', 'SLIPPAGE_PCT', 'GAP_VETO_MULT',
         'RS_SWEET_SPOT_LOW', 'RS_SWEET_SPOT_HIGH', 'TRAILING_STOP_ACTIVATION_R',
         'TRAILING_STOP_LOCK_R', 'MIN_AVG_5M_VOLUME', 'MIN_AVG_5M_TURNOVER',
-        'ALERT_KILL_SCORE_THRESHOLD',
+        'ALERT_KILL_SCORE_THRESHOLD', 'MAX_POSITION_NOTIONAL_PCT',
     )
     for name in numeric:
         value = globals()[name]
@@ -78,6 +79,7 @@ def validate_config():
         require(0 < globals()[name] < 1, f'{name} must be in (0, 1)')
     require(MAX_TRADE_RISK_PCT <= MAX_PORTFOLIO_RISK_PCT, 'Trade risk cap exceeds portfolio risk cap')
     require(0 < MIN_BREADTH_COVERAGE <= 1, 'MIN_BREADTH_COVERAGE must be in (0, 1]')
+    require(0 < MAX_POSITION_NOTIONAL_PCT <= 1, 'MAX_POSITION_NOTIONAL_PCT must be in (0, 1]')
     require(0 <= KILL_SCORE_THRESHOLD < 10, 'KILL_SCORE_THRESHOLD must be in [0, 10)')
     require(KILL_SCORE_THRESHOLD <= ALERT_KILL_SCORE_THRESHOLD <= 10,
             'Alert threshold must be between scan threshold and 10')
